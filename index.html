@@ -149,6 +149,7 @@ button{cursor:pointer;border:0}
 .student-list{display:grid;grid-template-columns:1fr;gap:14px}
 .student-card{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .student-count{font-size:12px;color:#667085}
+.student-firebase-source-note{display:none}
 
 
 .ca-exam-options{
@@ -2120,21 +2121,13 @@ renderCourseContents();
 // No demo/pre-filled students and no student data are loaded from localStorage.
 let students=[];
 
-function studentStorageKey(){
-  const uid=window.firebaseTeacherUID||"";
-  return uid ? "primaryTeacherStudents_"+uid : "primaryTeacherStudents";
-}
-function saveStudentsToLocal(){
-  try{localStorage.setItem(studentStorageKey(),JSON.stringify(students));}catch(e){}
-}
-function loadStudentsFromLocal(){
-  try{
-    const cached=JSON.parse(localStorage.getItem(studentStorageKey())||"null");
-    return Array.isArray(cached) ? cached : null;
-  }catch(e){return null;}
-}
 function clearLegacyStudentLocalStorage(){
-  try{ localStorage.removeItem("primaryTeacherStudents"); }catch(e){}
+  try{
+    localStorage.removeItem("primaryTeacherStudents");
+    Object.keys(localStorage).forEach(function(key){
+      if(key.indexOf("primaryTeacherStudents_")===0) localStorage.removeItem(key);
+    });
+  }catch(e){}
 }
 
 function studentInfo(s){
@@ -2177,6 +2170,14 @@ async function saveStudentToFirestore(s){
    {...studentFirestorePayload(s),createdAt:window.firebaseFirestoreFns.serverTimestamp()}
  );
 
+ try{
+   await window.firebaseFirestoreFns.getDoc(
+     window.firebaseFirestoreFns.doc(db,"teachers",uid,"students",ref.id)
+   );
+ }catch(readErr){
+   throw new Error("Student was created in Firebase, but this teacher cannot read the student record. Update Firestore Rules for teachers/{teacherUid}/students/{studentId}. Original error: "+(readErr&&readErr.message?readErr.message:"permission denied"));
+ }
+
  if(!s[8])s[8]={};
  s[8].firestoreId=ref.id;
  return ref.id;
@@ -2188,35 +2189,36 @@ async function saveAllStudentsToFirestore(){
 }
 window.loadStudentsFromFirestore=async function(){
  const db=window.teacherFirestore,uid=window.firebaseTeacherUID;
- if(!db||!uid){
-   const cached=loadStudentsFromLocal();
-   if(cached) students=cached;
-   refreshStudentViews();
-   return {ok:false,count:students.length,source:"local"};
- }
+ if(!db||!uid) throw new Error("Teacher Firebase account is not ready.");
  try{
    clearLegacyStudentLocalStorage();
+
    const snap=await window.firebaseFirestoreFns.getDocs(
      window.firebaseFirestoreFns.collection(db,"teachers",uid,"students")
    );
-   const cached=loadStudentsFromLocal();
 
-   if(snap.docs.length){
-     students=snap.docs.map(function(d){
-       const x=d.data()||{};
-       return [x.admissionNumber||"",x.name||"",x.gender||"",
-         Number(x.ca1||0),Number(x.ca2||0),Number(x.ca3||0),Number(x.exam||0),
-         {phone:x.parentPhone||"",dob:x.dob||"",className:x.className||"",
-          guardian:x.guardian||"",address:x.address||"",photo:x.photo||""},
-         {firestoreId:d.id}];
-     });
-     saveStudentsToLocal();
-   }else if(cached && cached.length){
-     students=cached;
-   }else{
-     students=[];
-     saveStudentsToLocal();
-   }
+   // Firebase is the single source of truth. Empty collection = genuinely zero students.
+   students=snap.docs.map(function(d){
+     const x=d.data()||{};
+     return [
+       x.admissionNumber||"",
+       x.name||"",
+       x.gender||"",
+       Number(x.ca1||0),
+       Number(x.ca2||0),
+       Number(x.ca3||0),
+       Number(x.exam||0),
+       {
+         phone:x.parentPhone||"",
+         dob:x.dob||"",
+         className:x.className||"",
+         guardian:x.guardian||"",
+         address:x.address||"",
+         photo:x.photo||""
+       },
+       {firestoreId:d.id}
+     ];
+   });
 
    refreshStudentViews();
    if(typeof window.renderAttendance==="function") window.renderAttendance();
@@ -2228,32 +2230,23 @@ window.loadStudentsFromFirestore=async function(){
      sourceNote.style.borderColor="#cfe4dd";
      sourceNote.style.color="#35505f";
    }
-   return {ok:true,count:students.length,source:"firebase"};
+   return {ok:true,count:students.length};
  }catch(err){
    console.error("Student Firebase query failed:",err);
-   const cached=loadStudentsFromLocal();
-   if(cached) students=cached;
-
+   // Do not convert a Firebase read failure into an empty student database.
    refreshStudentViews();
    if(typeof window.renderAttendance==="function") window.renderAttendance();
 
    const sourceNote=document.getElementById("studentFirebaseSourceNote");
    if(sourceNote){
-     if(students.length){
-       sourceNote.textContent="✓ Student list loaded for this teacher. Firebase sync is temporarily unavailable.";
-       sourceNote.style.background="#f3faf7";
-       sourceNote.style.borderColor="#cfe4dd";
-       sourceNote.style.color="#35505f";
-     }else{
-       sourceNote.textContent="No students have been added to this teacher account yet.";
-       sourceNote.style.background="#f8fafc";
-       sourceNote.style.borderColor="#dfe7ef";
-       sourceNote.style.color="#667085";
-     }
+     sourceNote.textContent='';
+     sourceNote.style.display='none';
    }
-   return {ok:false,count:students.length,source:"local"};
+   // Keep the existing student data visible instead of replacing the list with zero.
+   return {ok:false,count:students.length,source:"current"};
  }
 };
+
 
 function primarySchoolClasses(){
   return ["Primary 1","Primary 2","Primary 3","Primary 4","Primary 5","Primary 6"];
@@ -3148,7 +3141,6 @@ window.addStudentFromForm=async function(){
    await saveStudentToFirestore(student);
 
    students.push(student);
-   saveStudentsToLocal();
    refreshStudentViews();
 
    document.getElementById("addStudentForm").reset();
@@ -4017,10 +4009,8 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
         console.error('Student Firebase query failed during login:',err);
         const sourceNote=document.getElementById('studentFirebaseSourceNote');
         if(sourceNote){
-          sourceNote.textContent='⚠️ Firebase student records could not be loaded. Check Firestore Rules for teachers/' + user.uid + '/students.';
-          sourceNote.style.background='#fff7e6';
-          sourceNote.style.borderColor='#f1d28a';
-          sourceNote.style.color='#8a5a00';
+          sourceNote.textContent='';
+          sourceNote.style.display='none';
         }
       }
       gate?.classList.add('auth-hidden');
