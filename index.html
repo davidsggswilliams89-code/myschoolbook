@@ -1334,7 +1334,7 @@ html.teacher-auth-pending #firebaseAuthGate{display:none !important;}
     </div>
 
 
-    <h2 class="teacher-name">Mr. Ibrahim</h2>
+    <h2 class="teacher-name"></h2>
     <div class="teacher-subjects" id="dashboardTeacherSubjects" aria-live="polite">
       <div class="teacher-subject-placeholder">No subscribed subject yet</div>
     </div>
@@ -2382,6 +2382,27 @@ const lessonLibrary={
 };
 
 
+function teacherIdentitySafe(value){
+  return String(value == null ? "" : value)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+}
+window.__teacherIdentity = window.__teacherIdentity || {fullName:"",schoolName:""};
+
+function teacherFullName(){
+  const p=window.__teacherIdentity||{};
+  const name=p.fullName || (window.firebaseTeacherUser && window.firebaseTeacherUser.displayName) || "";
+  return teacherIdentitySafe(name || "—");
+}
+
+function teacherSchoolName(){
+  const p=window.__teacherIdentity||{};
+  return teacherIdentitySafe(p.schoolName || "—");
+}
+
 function renderCurriculum(){
  const tb=document.querySelector("#curriculumTable tbody"); if(!tb) return;
  tb.innerHTML=curriculum.map((x,i)=>{
@@ -2402,7 +2423,7 @@ function viewStudentResult(i){
  const finalScore=ca+Number(s[6]);
  showModal(`📊 ${s[1]} — Result`,`
    <div class="assessment-header">
-     <div class="meta-item"><b>School name:</b> Primary School</div>
+     <div class="meta-item"><b>School name:</b> ${teacherSchoolName()}</div>
      <div class="meta-item"><b>Subject:</b> Basic Science &amp; Technology</div>
      <div class="meta-item"><b>Term:</b> First Term</div>
      <div class="meta-item"><b>Class:</b> Primary 5</div>
@@ -2545,8 +2566,8 @@ function lessonForm(type,index=0){
 
     <h4>1. Lesson Information</h4>
     <div class="formgrid">
-      <div class="field"><label>School Name</label><input value="Primary School"></div>
-      <div class="field"><label>Teacher's Name</label><input value="Mr. Ibrahim"></div>
+      <div class="field"><label>School Name</label><input value="${teacherSchoolName()}"></div>
+      <div class="field"><label>Teacher's Name</label><input value="${teacherFullName()}"></div>
       <div class="field"><label>Class</label><input value="Primary 5"></div>
       <div class="field"><label>Subject</label><input value="Basic Science & Technology"></div>
       <div class="field"><label>Term</label><input value="First Term"></div>
@@ -2621,12 +2642,12 @@ function openCA(n){
   const suffix=n===1?"st":n===2?"nd":"rd";
   showModal(`📝 ${n}${suffix} C.A Record`,`
     <div class="assessment-header">
-      <div class="meta-item"><b>School name:</b> Primary School</div>
+      <div class="meta-item"><b>School name:</b> ${teacherSchoolName()}</div>
       <div class="meta-item"><b>Subject:</b> Basic Science &amp; Technology</div>
       <div class="meta-item"><b>Term:</b> First Term</div>
       <div class="meta-item"><b>Class:</b> Primary 5</div>
       <div class="meta-item"><b>Date:</b> ${new Date().toLocaleDateString()}</div>
-      <div class="meta-item"><b>Teacher name:</b> Mr. Ibrahim</div>
+      <div class="meta-item"><b>Teacher name:</b> ${teacherFullName()}</div>
     </div>
     <div class="tablewrap"><table><thead><tr><th>S/N</th><th>Admission No.</th><th>Student</th><th>Score /10</th></tr></thead><tbody>
     ${students.map((s,i)=>`<tr><td>${i+1}</td><td>${s[0]}</td><td>${s[1]}</td><td><input style="width:75px;padding:7px" type="number" min="0" max="10" value="${s[n+2]}"></td></tr>`).join("")}
@@ -2637,12 +2658,12 @@ function openExam(){
   currentAssessmentType={kind:"exam"};
   showModal("📋 Examination Record",`
     <div class="assessment-header">
-      <div class="meta-item"><b>School name:</b> Primary School</div>
+      <div class="meta-item"><b>School name:</b> ${teacherSchoolName()}</div>
       <div class="meta-item"><b>Subject:</b> Basic Science &amp; Technology</div>
       <div class="meta-item"><b>Term:</b> First Term</div>
       <div class="meta-item"><b>Class:</b> Primary 5</div>
       <div class="meta-item"><b>Date:</b> ${new Date().toLocaleDateString()}</div>
-      <div class="meta-item"><b>Teacher name:</b> Mr. Ibrahim</div>
+      <div class="meta-item"><b>Teacher name:</b> ${teacherFullName()}</div>
     </div>
     <div class="tablewrap"><table><thead><tr><th>S/N</th><th>Admission No.</th><th>Student</th><th>Exam /70</th></tr></thead><tbody>
     ${students.map((s,i)=>`<tr><td>${i+1}</td><td>${s[0]}</td><td>${s[1]}</td><td><input style="width:75px;padding:7px" type="number" min="0" max="70" value="${s[6]}"></td></tr>`).join("")}
@@ -2652,12 +2673,12 @@ function openExam(){
 function openResults(){
   showModal("📊 Results — View / Edit / Print",`
     <div class="assessment-header">
-      <div class="meta-item"><b>School name:</b> Primary School</div>
+      <div class="meta-item"><b>School name:</b> ${teacherSchoolName()}</div>
       <div class="meta-item"><b>Subject:</b> Basic Science &amp; Technology</div>
       <div class="meta-item"><b>Term:</b> First Term</div>
       <div class="meta-item"><b>Class:</b> Primary 5</div>
       <div class="meta-item"><b>Date:</b> ${new Date().toLocaleDateString()}</div>
-      <div class="meta-item"><b>Teacher name:</b> Mr. Ibrahim</div>
+      <div class="meta-item"><b>Teacher name:</b> ${teacherFullName()}</div>
     </div>
     <div class="tablewrap">
       <table>
@@ -2720,12 +2741,12 @@ function printAssessment(){
     <h1 class="print-title">PRIMARY 5 — BASIC SCIENCE &amp; TECHNOLOGY</h1>
     <h2 style="text-align:center">${title}</h2>
     <div class="print-meta">
-      <div><b>School name:</b> Primary School</div>
+      <div><b>School name:</b> ${teacherSchoolName()}</div>
       <div><b>Subject:</b> Basic Science &amp; Technology</div>
       <div><b>Term:</b> First Term</div>
       <div><b>Class:</b> Primary 5</div>
       <div><b>Date:</b> ${new Date().toLocaleDateString()}</div>
-      <div><b>Teacher name:</b> Mr. Ibrahim</div>
+      <div><b>Teacher name:</b> ${teacherFullName()}</div>
     </div>
     <table><thead><tr><th>S/N</th><th>Admission No.</th><th>Student</th><th>${scoreHead}</th></tr></thead>
     <tbody>${students.map((s,i)=>`<tr><td>${i+1}</td><td>${s[0]}</td><td>${s[1]}</td><td>${s[scoreIndex]}</td></tr>`).join("")}</tbody></table>`);
@@ -2754,8 +2775,8 @@ function printCurrentLesson(){
       <h1 class="print-title">PRIMARY 5 — BASIC SCIENCE & TECHNOLOGY</h1>
       <h2 style="text-align:center">LESSON NOTE</h2>
       <div class="print-meta">
-        <div><b>School:</b> Primary School</div>
-        <div><b>Teacher:</b> Mr. Ibrahim</div>
+        <div><b>School:</b> ${teacherSchoolName()}</div>
+        <div><b>Teacher:</b> ${teacherFullName()}</div>
         <div><b>Class:</b> Primary 5</div>
         <div><b>Subject:</b> Basic Science & Technology</div>
         <div><b>Term:</b> First Term</div>
@@ -2786,8 +2807,8 @@ function printCurrentLesson(){
     <h1 class="print-title">PRIMARY 5 — BASIC SCIENCE & TECHNOLOGY</h1>
     <h2 style="text-align:center">LESSON PLAN</h2>
     <div class="print-meta">
-      <div><b>School:</b> Primary School</div>
-      <div><b>Teacher:</b> Mr. Ibrahim</div>
+      <div><b>School:</b> ${teacherSchoolName()}</div>
+      <div><b>Teacher:</b> ${teacherFullName()}</div>
       <div><b>Class:</b> Primary 5</div>
       <div><b>Subject:</b> Basic Science & Technology</div>
       <div><b>Term:</b> First Term</div>
@@ -2811,7 +2832,7 @@ function printCurrentLesson(){
 }
 function printTopic(i){
  const c=curriculum[i];
- printDocument(`<h1 class="print-title">PRIMARY 5 — BASIC SCIENCE & TECHNOLOGY</h1><div class="print-meta"><div><b>Term:</b> First Term</div><div><b>Topic:</b> ${c.topic}</div><div><b>Teacher:</b> Mr. Ibrahim</div><div><b>Class:</b> Primary 5</div></div><h2>Curriculum Contents</h2><p>• ${c.periods.map((p,j)=>`<b>Period ${j+1}:</b> ${p.title}<br>• ${p.subcontents.join("<br>• ")}`).join("<br><br>")}</p>`);
+ printDocument(`<h1 class="print-title">PRIMARY 5 — BASIC SCIENCE & TECHNOLOGY</h1><div class="print-meta"><div><b>Term:</b> First Term</div><div><b>Topic:</b> ${c.topic}</div><div><b>Teacher:</b> ${teacherFullName()}</div><div><b>Class:</b> Primary 5</div></div><h2>Curriculum Contents</h2><p>• ${c.periods.map((p,j)=>`<b>Period ${j+1}:</b> ${p.title}<br>• ${p.subcontents.join("<br>• ")}`).join("<br><br>")}</p>`);
 }
 function printCurriculum(){
  printDocument(`<h1 class="print-title">PRIMARY 5 — BASIC SCIENCE & TECHNOLOGY — FIRST TERM CURRICULUM</h1><table><thead><tr><th>S/N</th><th>Topic</th><th>Contents</th></tr></thead><tbody>${curriculum.map((x,i)=>`<tr><td>${i+1}</td><td>${x.topic}</td><td>${x.contents}</td></tr>`).join("")}</tbody></table>`);
@@ -2825,7 +2846,7 @@ function printStudentResult(i){
    <h1 class="print-title">PRIMARY 5 — BASIC SCIENCE &amp; TECHNOLOGY</h1>
    <h2 style="text-align:center">STUDENT RESULT</h2>
    <div class="print-meta">
-     <div><b>School name:</b> Primary School</div>
+     <div><b>School name:</b> ${teacherSchoolName()}</div>
      <div><b>Subject:</b> Basic Science &amp; Technology</div>
      <div><b>Term:</b> First Term</div>
      <div><b>Class:</b> Primary 5</div>
@@ -2850,12 +2871,12 @@ function printResults(){
    <h1 class="print-title">PRIMARY 5 — BASIC SCIENCE & TECHNOLOGY</h1>
    <h2 style="text-align:center">FIRST TERM RESULTS</h2>
    <div class="print-meta">
-     <div><b>School name:</b> Primary School</div>
+     <div><b>School name:</b> ${teacherSchoolName()}</div>
      <div><b>Subject:</b> Basic Science &amp; Technology</div>
      <div><b>Term:</b> First Term</div>
      <div><b>Class:</b> Primary 5</div>
      <div><b>Date:</b> ${printDate}</div>
-     <div><b>Teacher name:</b> Mr. Ibrahim</div>
+     <div><b>Teacher name:</b> ${teacherFullName()}</div>
    </div>
    <table>
      <thead><tr><th>Student</th><th>1st C.A</th><th>2nd C.A</th><th>3rd C.A</th><th>C.A Total</th><th>Exam</th><th>Final</th><th>Grade</th></tr></thead>
@@ -3164,7 +3185,7 @@ window.viewStudentResult=function(index){
     var info=studentInfo(s),ca=Number(s[3])+Number(s[4])+Number(s[5]),finalScore=ca+Number(s[6]);
     showModal("📊 "+s[1]+" — Result",`
       <div class="assessment-header">
-        <div class="meta-item"><b>School name:</b> Primary School</div>
+        <div class="meta-item"><b>School name:</b> ${teacherSchoolName()}</div>
         <div class="meta-item"><b>Subject:</b> Basic Science &amp; Technology</div>
         <div class="meta-item"><b>Term:</b> ${selectedDashboardTerm()}</div>
         <div class="meta-item"><b>Class:</b> ${info.className}</div>
@@ -3187,12 +3208,12 @@ window.viewStudentResult=function(index){
     var suffix=n===1?"st":n===2?"nd":"rd",records=visibleStudentRecords();
     showModal("📝 "+n+suffix+" C.A Record",`
       <div class="assessment-header">
-        <div class="meta-item"><b>School name:</b> Primary School</div>
+        <div class="meta-item"><b>School name:</b> ${teacherSchoolName()}</div>
         <div class="meta-item"><b>Subject:</b> Basic Science &amp; Technology</div>
         <div class="meta-item"><b>Term:</b> ${selectedDashboardTerm()}</div>
         <div class="meta-item"><b>Class:</b> ${selectedDashboardClass()}</div>
         <div class="meta-item"><b>Date:</b> ${new Date().toLocaleDateString()}</div>
-        <div class="meta-item"><b>Teacher name:</b> Mr. Ibrahim</div>
+        <div class="meta-item"><b>Teacher name:</b> ${teacherFullName()}</div>
       </div>
       ${records.length?`<div class="tablewrap"><table><thead><tr><th>S/N</th><th>Admission No.</th><th>Student</th><th>Score /10</th></tr></thead><tbody>
       ${records.map(function(item,i){var s=item.s;return `<tr><td>${i+1}</td><td>${s[0]}</td><td>${s[1]}</td><td><input data-student-index="${item.index}" style="width:75px;padding:7px" type="number" min="0" max="10" value="${s[n+2]}"></td></tr>`}).join("")}
@@ -3203,12 +3224,12 @@ window.viewStudentResult=function(index){
     currentAssessmentType={kind:"exam"};var records=visibleStudentRecords();
     showModal("📋 Examination Record",`
       <div class="assessment-header">
-        <div class="meta-item"><b>School name:</b> Primary School</div>
+        <div class="meta-item"><b>School name:</b> ${teacherSchoolName()}</div>
         <div class="meta-item"><b>Subject:</b> Basic Science &amp; Technology</div>
         <div class="meta-item"><b>Term:</b> ${selectedDashboardTerm()}</div>
         <div class="meta-item"><b>Class:</b> ${selectedDashboardClass()}</div>
         <div class="meta-item"><b>Date:</b> ${new Date().toLocaleDateString()}</div>
-        <div class="meta-item"><b>Teacher name:</b> Mr. Ibrahim</div>
+        <div class="meta-item"><b>Teacher name:</b> ${teacherFullName()}</div>
       </div>
       ${records.length?`<div class="tablewrap"><table><thead><tr><th>S/N</th><th>Admission No.</th><th>Student</th><th>Exam /70</th></tr></thead><tbody>
       ${records.map(function(item,i){var s=item.s;return `<tr><td>${i+1}</td><td>${s[0]}</td><td>${s[1]}</td><td><input data-student-index="${item.index}" style="width:75px;padding:7px" type="number" min="0" max="70" value="${s[6]}"></td></tr>`}).join("")}
@@ -3233,7 +3254,7 @@ window.viewStudentResult=function(index){
     var records=visibleStudentRecords();
     showModal("📊 Results — View / Edit / Print",`
       <div class="assessment-header">
-        <div class="meta-item"><b>School name:</b> Primary School</div>
+        <div class="meta-item"><b>School name:</b> ${teacherSchoolName()}</div>
         <div class="meta-item"><b>Subject:</b> Basic Science &amp; Technology</div>
         <div class="meta-item"><b>Term:</b> ${selectedDashboardTerm()}</div>
         <div class="meta-item"><b>Class:</b> ${selectedDashboardClass()}</div>
@@ -3932,6 +3953,10 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
       address: profile.address || '',
       photo: profile.profilePhoto || '',
       initialSavedAt: profile.initialSavedAt || null
+    };
+    window.__teacherIdentity = {
+      fullName: merged.fullName || '',
+      schoolName: merged.school || ''
     };
     try{ localStorage.setItem('primaryTeacherProfile_'+user.uid,JSON.stringify(merged)); }catch(e){}
     if(typeof window.loadTeacherProfile==='function') window.loadTeacherProfile();
