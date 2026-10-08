@@ -1233,6 +1233,62 @@ html.teacher-auth-pending #firebaseAuthGate{display:none !important;}
 
 
 
+
+<style>
+/* Student edit/delete controls */
+.student-edit-modal{
+  position:fixed;inset:0;background:rgba(0,0,0,.48);display:none;
+  align-items:flex-start;justify-content:center;padding:78px 10px 16px;
+  z-index:1300;overflow:auto;
+}
+.student-edit-modal.show{display:flex}
+.student-edit-box{
+  width:min(720px,100%);max-height:calc(100vh - 94px);overflow:auto;
+  background:#fff;border-radius:15px;box-shadow:0 18px 50px rgba(16,35,63,.22);
+}
+.student-edit-head{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:15px 17px;border-bottom:1px solid #dfe7ef;position:sticky;top:0;
+  background:#fff;z-index:2;
+}
+.student-edit-head h3{margin:0;color:#17324d;font-size:20px}
+.student-edit-head small{display:block;color:#667085;margin-top:3px}
+.student-edit-close{
+  width:36px;height:36px;border-radius:50%;background:#eef2f6;color:#344054;
+  font-size:24px;line-height:1;
+}
+.student-edit-form{padding:16px}
+.student-edit-photo-row{
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:12px;border:1px dashed #b9c8d8;border-radius:10px;background:#f8fbfd;margin-bottom:14px;
+}
+.student-edit-photo-preview{
+  width:92px;height:112px;border-radius:10px;border:2px solid #d6e0ea;
+  background:#eef3f7;display:flex;align-items:center;justify-content:center;
+  overflow:hidden;color:#718096;font-size:11px;font-weight:800;flex-shrink:0;
+}
+.student-edit-photo-preview img{width:100%;height:100%;object-fit:cover}
+.student-edit-photo-actions{display:flex;gap:8px;flex-wrap:wrap}
+.student-edit-photo-btn,.student-edit-remove-photo{
+  display:inline-flex;align-items:center;justify-content:center;padding:10px 12px;
+  border-radius:8px;border:1px solid #cbd6e2;background:#fff;color:#334155;
+  font-size:12px;font-weight:800;cursor:pointer;
+}
+.student-edit-remove-photo{color:#e63149}
+.student-edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.student-edit-actions{
+  display:flex;justify-content:flex-end;gap:8px;padding-top:14px;margin-top:4px;
+  border-top:1px solid #edf1f4;
+}
+@media(max-width:760px){
+  .student-edit-modal{padding:70px 7px 10px}
+  .student-edit-box{max-height:calc(100dvh - 80px)}
+  .student-edit-grid{grid-template-columns:1fr}
+  .student-edit-actions{justify-content:stretch}
+  .student-edit-actions button{flex:1}
+}
+</style>
+
 </head>
 <body>
 <script>
@@ -1554,11 +1610,92 @@ html.teacher-auth-pending #firebaseAuthGate{display:none !important;}
       <div class="cardhead"><h3>Student List</h3><span class="student-count" id="studentCount">0 Students</span></div>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>S/N</th><th>Photo</th><th>Admission No.</th><th>Student Name</th><th>Gender</th><th>Class</th><th>Result</th></tr></thead>
+          <thead><tr><th>S/N</th><th>Photo</th><th>Admission No.</th><th>Student Name</th><th>Gender</th><th>Class</th><th>Result / Actions</th></tr></thead>
           <tbody id="studentsBody"></tbody>
         </table>
       </div>
     </div>
+  </div>
+</div>
+
+
+<!-- Student Edit Modal: only for correcting an existing student record -->
+<div id="studentEditModal" class="student-edit-modal" aria-hidden="true">
+  <div class="student-edit-box">
+    <div class="student-edit-head">
+      <div>
+        <h3>✏️ Edit Student</h3>
+        <small>Correct the student details, class or photo, then save.</small>
+      </div>
+      <button type="button" class="student-edit-close" onclick="closeStudentEdit()">×</button>
+    </div>
+    <form id="studentEditForm" class="student-edit-form">
+      <input type="hidden" id="editStudentIndex">
+      <div class="student-edit-photo-row">
+        <div id="editStudentPhotoPreview" class="student-edit-photo-preview"><span>PHOTO</span></div>
+        <div class="student-edit-photo-actions">
+          <label class="student-edit-photo-btn">📁 CHOOSE PHOTO
+            <input id="editStudentPhoto" type="file" accept="image/*" hidden>
+          </label>
+          <label class="student-edit-photo-btn">📷 TAKE PHOTO
+            <input id="editStudentCamera" type="file" accept="image/*" capture="user" hidden>
+          </label>
+          <button type="button" class="student-edit-remove-photo" onclick="removeEditedStudentPhoto()">REMOVE</button>
+        </div>
+      </div>
+
+      <div class="student-edit-grid">
+        <div class="field">
+          <label>STUDENT NAME</label>
+          <input id="editStudentName" type="text" required>
+        </div>
+        <div class="field">
+          <label>ADMISSION NO.</label>
+          <input id="editStudentAdmission" type="text" required>
+        </div>
+        <div class="field">
+          <label>GENDER</label>
+          <select id="editStudentGender" required>
+            <option value="">Select Gender</option>
+            <option>Male</option>
+            <option>Female</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>CLASS</label>
+          <select id="editStudentClass" required>
+            <option value="">Select Class</option>
+            <option>Primary 1</option>
+            <option>Primary 2</option>
+            <option>Primary 3</option>
+            <option>Primary 4</option>
+            <option>Primary 5</option>
+            <option>Primary 6</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>DATE OF BIRTH</label>
+          <input id="editStudentDob" type="date">
+        </div>
+        <div class="field">
+          <label>PARENT PHONE</label>
+          <input id="editStudentPhone" type="tel">
+        </div>
+        <div class="field">
+          <label>GUARDIAN</label>
+          <input id="editStudentGuardian" type="text">
+        </div>
+        <div class="field full">
+          <label>ADDRESS</label>
+          <textarea id="editStudentAddress"></textarea>
+        </div>
+      </div>
+
+      <div class="student-edit-actions">
+        <button type="button" class="secondary" onclick="closeStudentEdit()">CANCEL</button>
+        <button type="submit" class="primary" id="saveStudentEditButton">SAVE CHANGES</button>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -3070,7 +3207,7 @@ renderCurriculum();renderStudents();renderResults();
  body.innerHTML=records.map(function(item,i){
    var s=item.s,info=studentInfo(s);
    var photo=info.photo ? '<img src="'+info.photo+'" alt="Student photo" style="width:42px;height:52px;object-fit:cover;border-radius:6px">' : '—';
-   return '<tr><td>'+(i+1)+'</td><td>'+photo+'</td><td>'+s[0]+'</td><td>'+s[1]+'</td><td>'+s[2]+'</td><td>'+info.className+'</td><td><button class="btn blue" onclick="viewStudentResult('+item.index+')">View</button></td></tr>';
+   return '<tr><td>'+(i+1)+'</td><td>'+photo+'</td><td>'+s[0]+'</td><td>'+s[1]+'</td><td>'+s[2]+'</td><td>'+info.className+'</td><td><button class="btn blue" onclick="viewStudentResult('+item.index+')">View</button> <button class="btn green" onclick="editStudent('+item.index+')">Edit</button> <button class="btn red" onclick="deleteStudent('+item.index+')">Delete</button></td></tr>';
  }).join("") || '<tr><td colspan="7" class="empty">No students have been added to '+selectedDashboardClass()+' yet.</td></tr>';
 };
 
@@ -3180,6 +3317,197 @@ window.addStudentFromForm=async function(){
    }
  }
 };
+
+window.__editingStudentPhoto = null;
+window.__editingStudentPhotoChanged = false;
+
+window.editStudent=function(index){
+  var s=students[index];
+  if(!s)return;
+  var info=studentInfo(s);
+
+  document.getElementById("editStudentIndex").value=index;
+  document.getElementById("editStudentName").value=s[1]||"";
+  document.getElementById("editStudentAdmission").value=s[0]||"";
+  document.getElementById("editStudentGender").value=s[2]||"";
+  document.getElementById("editStudentClass").value=info.className||"";
+  document.getElementById("editStudentDob").value=info.dob||"";
+  document.getElementById("editStudentPhone").value=info.phone||"";
+  document.getElementById("editStudentGuardian").value=info.guardian||"";
+  document.getElementById("editStudentAddress").value=info.address||"";
+
+  window.__editingStudentPhoto=info.photo||"";
+  window.__editingStudentPhotoChanged=false;
+
+  var preview=document.getElementById("editStudentPhotoPreview");
+  if(preview){
+    preview.innerHTML=info.photo
+      ? '<img src="'+info.photo+'" alt="Student photo">'
+      : '<span>PHOTO</span>';
+  }
+
+  var modal=document.getElementById("studentEditModal");
+  if(modal){modal.classList.add("show");modal.setAttribute("aria-hidden","false");}
+};
+
+window.closeStudentEdit=function(){
+  var modal=document.getElementById("studentEditModal");
+  if(modal){modal.classList.remove("show");modal.setAttribute("aria-hidden","true");}
+  window.__editingStudentPhoto=null;
+  window.__editingStudentPhotoChanged=false;
+};
+
+window.removeEditedStudentPhoto=function(){
+  window.__editingStudentPhoto="";
+  window.__editingStudentPhotoChanged=true;
+  var a=document.getElementById("editStudentPhoto");
+  var b=document.getElementById("editStudentCamera");
+  if(a)a.value="";
+  if(b)b.value="";
+  var preview=document.getElementById("editStudentPhotoPreview");
+  if(preview)preview.innerHTML="<span>PHOTO</span>";
+};
+
+async function readStudentEditPhoto(){
+  var a=document.getElementById("editStudentPhoto");
+  var b=document.getElementById("editStudentCamera");
+  var file=(a&&a.files[0])||(b&&b.files[0]);
+  if(!file)return window.__editingStudentPhoto||"";
+
+  window.__editingStudentPhotoChanged=true;
+  if(typeof window.uploadStudentPhotoToCloudinary==="function"){
+    return await window.uploadStudentPhotoToCloudinary(file);
+  }
+  return await new Promise(function(resolve,reject){
+    var reader=new FileReader();
+    reader.onload=function(e){resolve(e.target.result);};
+    reader.onerror=reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+(function(){
+  var form=document.getElementById("studentEditForm");
+  if(!form)return;
+
+  function previewEditPhoto(file){
+    if(!file)return;
+    var preview=document.getElementById("editStudentPhotoPreview");
+    if(!preview)return;
+    var reader=new FileReader();
+    reader.onload=function(e){
+      preview.innerHTML='<img src="'+e.target.result+'" alt="Student photo preview">';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  ["editStudentPhoto","editStudentCamera"].forEach(function(id){
+    var input=document.getElementById(id);
+    if(input)input.addEventListener("change",function(){
+      previewEditPhoto(this.files&&this.files[0]);
+    });
+  });
+
+  form.addEventListener("submit",async function(e){
+    e.preventDefault();
+
+    var index=Number(document.getElementById("editStudentIndex").value);
+    var s=students[index];
+    if(!s)return;
+
+    var name=document.getElementById("editStudentName").value.trim();
+    var admission=document.getElementById("editStudentAdmission").value.trim();
+    var gender=document.getElementById("editStudentGender").value;
+    var className=document.getElementById("editStudentClass").value;
+    var dob=document.getElementById("editStudentDob").value;
+    var phone=document.getElementById("editStudentPhone").value.trim();
+    var guardian=document.getElementById("editStudentGuardian").value.trim();
+    var address=document.getElementById("editStudentAddress").value.trim();
+    var button=document.getElementById("saveStudentEditButton");
+
+    if(!name||!admission||!gender||!className){
+      alert("Please complete Student Name, Admission Number, Gender and Class.");
+      return;
+    }
+
+    var duplicate=students.some(function(other,i){
+      return i!==index && String(other[0]||"").trim().toLowerCase()===admission.toLowerCase();
+    });
+    if(duplicate){
+      alert("This admission number already exists for another student.");
+      return;
+    }
+
+    var originalText=button?button.textContent:"SAVE CHANGES";
+    if(button){button.disabled=true;button.textContent="SAVING...";}
+
+    try{
+      var photo=await readStudentEditPhoto();
+
+      s[0]=admission;
+      s[1]=name;
+      s[2]=gender;
+      var info=studentInfo(s);
+      info.className=className;
+      info.dob=dob;
+      info.phone=phone;
+      info.guardian=guardian;
+      info.address=address;
+      info.photo=photo;
+
+      await saveStudentToFirestore(s);
+      refreshStudentViews();
+      closeStudentEdit();
+
+      alert(name+" has been updated successfully. The changes are now available in C.A, Examination, Results and Attendance.");
+    }catch(err){
+      console.error("Student update failed:",err);
+      alert("Student could not be updated. Please try again.\n\n"+(err&&err.message?err.message:"Unknown error"));
+    }finally{
+      if(button){button.disabled=false;button.textContent=originalText;}
+    }
+  });
+
+  var modal=document.getElementById("studentEditModal");
+  if(modal)modal.addEventListener("click",function(e){
+    if(e.target===modal)closeStudentEdit();
+  });
+})();
+
+window.deleteStudent=async function(index){
+  var s=students[index];
+  if(!s)return;
+
+  var name=s[1]||"this student";
+  var admission=s[0]||"";
+  var confirmed=window.confirm(
+    "Delete "+name+" ("+admission+")?\n\nThis will remove the student from the Student List, C.A., Examination, Results and Attendance."
+  );
+  if(!confirmed)return;
+
+  try{
+    var id=studentFirestoreId(s);
+    var db=window.teacherFirestore;
+    var uid=window.firebaseTeacherUID;
+
+    if(id){
+      if(!db||!uid||!window.firebaseFirestoreFns||!window.firebaseFirestoreFns.deleteDoc){
+        throw new Error("Teacher Firebase account is not ready.");
+      }
+      await window.firebaseFirestoreFns.deleteDoc(
+        window.firebaseFirestoreFns.doc(db,"teachers",uid,"students",id)
+      );
+    }
+
+    students.splice(index,1);
+    refreshStudentViews();
+    alert(name+" has been deleted successfully.");
+  }catch(err){
+    console.error("Student delete failed:",err);
+    alert("Student could not be deleted.\n\n"+(err&&err.message?err.message:"Unknown error"));
+  }
+};
+
 window.viewStudentResult=function(index){
     var s=students[index];if(!s)return;
     var info=studentInfo(s),ca=Number(s[3])+Number(s[4])+Number(s[5]),finalScore=ca+Number(s[6]);
@@ -3799,7 +4127,7 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
 <script type="module" id="firebase-auth-module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut, updateProfile, deleteUser, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-  import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+  import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAyqE3tESdUlDPtAdmEa8pYsviiX2J8ltM",
@@ -3816,7 +4144,7 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
   // Expose the Firestore functions needed by the existing student-management code.
   // The student-management code lives in a normal script, while Firebase uses an ES module.
   // Without this bridge, functions such as addDoc are not in that script's scope.
-  window.firebaseFirestoreFns = { collection, doc, getDoc, getDocs, addDoc, setDoc, serverTimestamp };
+  window.firebaseFirestoreFns = { collection, doc, getDoc, getDocs, addDoc, setDoc, deleteDoc, serverTimestamp };
   // Keep the teacher signed in across page refreshes and browser restarts.
   try { await setPersistence(auth, browserLocalPersistence); } catch(err) { console.error("Firebase auth persistence setup failed:", err); }
   window.firebaseApp = app;
