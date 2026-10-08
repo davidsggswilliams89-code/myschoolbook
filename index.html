@@ -1226,43 +1226,8 @@ table{max-width:100%}
 @media(max-width:480px){.auth-card{padding:20px;border-radius:16px}.auth-brand h2{font-size:21px}}
 </style>
 
-<style id="firebase-refresh-no-blink-style">
-/* Keep the authenticated page stable during a browser refresh. */
-html.firebase-session-active #firebaseAuthGate{display:none !important;}
-html.firebase-session-active #dashboardView,
-html.firebase-session-active #lessonsView,
-html.firebase-session-active #caExamView,
-html.firebase-session-active #studentsView,
-html.firebase-session-active #attendanceView,
-html.firebase-session-active #profileView,
-html.firebase-session-active #assignmentView,
-html.firebase-session-active #myClassesView,
-html.firebase-session-active #myTimetableView,
-html.firebase-session-active #examTimetableView,
-html.firebase-session-active #academicSessionView,
-html.firebase-session-active #settingsView,
-html.firebase-session-active #subscriptionView,
-html.firebase-session-active #holidayView{display:none !important;}
-</style>
-<script id="firebase-refresh-bootstrap">
-(function(){
-  try{
-    const uid=localStorage.getItem('firebaseTeacherUID');
-    if(!uid) return;
-    const valid=['dashboardView','lessonsView','caExamView','studentsView','attendanceView','profileView','assignmentView','myClassesView','myTimetableView','examTimetableView','academicSessionView','settingsView','subscriptionView','holidayView'];
-    let active='dashboardView';
-    try{
-      const saved=sessionStorage.getItem('teacherActiveSection');
-      if(valid.includes(saved)) active=saved;
-    }catch(_e){}
-    document.documentElement.classList.add('firebase-session-active');
-    const style=document.createElement('style');
-    style.id='firebase-refresh-active-style';
-    style.textContent='#'+active+'{display:block !important;}';
-    document.head.appendChild(style);
-  }catch(_e){}
-})();
-</script>
+
+
 </head>
 <body>
 <div id="firebaseAuthGate">
@@ -3630,9 +3595,6 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
   window.firebaseTeacherLogout=async function(){
     try{
       try{sessionStorage.removeItem('teacherActiveSection');}catch(_e){}
-      try{localStorage.removeItem('firebaseTeacherUID');}catch(_e){}
-      document.documentElement.classList.remove('firebase-session-active');
-      document.getElementById('firebase-refresh-active-style')?.remove();
       gate?.classList.remove('auth-hidden');
       gate?.classList.add('auth-ready');
       if(loginForm){loginForm.style.display='block';}
@@ -3707,8 +3669,6 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
   let authInitialized=false;
   onAuthStateChanged(auth,async user=>{
     if(user){
-      document.getElementById('firebase-refresh-active-style')?.remove();
-      document.documentElement.classList.remove('firebase-session-active');
       window.firebaseTeacherUID=user.uid;
       window.firebaseTeacherUser=user;
       localStorage.setItem('firebaseTeacherUID',user.uid);
@@ -3729,8 +3689,6 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
       if(typeof window.showSection==='function') window.showSection(activeSection,null);
       if(activeSection==='profileView' && typeof window.loadTeacherProfile==='function') window.loadTeacherProfile();
     }else{
-      document.getElementById('firebase-refresh-active-style')?.remove();
-      document.documentElement.classList.remove('firebase-session-active');
       window.firebaseTeacherUID=null;
       window.firebaseTeacherUser=null;
       if(authInitialized){ try{sessionStorage.removeItem('teacherActiveSection');}catch(_e){} }
