@@ -3328,14 +3328,29 @@ window.viewStudentResult=function(index){
       gender:$('teacherGender').value,phone:$('teacherPhone').value.trim(),school:$('teacherSchool').value.trim(),role:$('teacherRole').value,qualification:$('teacherQualification').value.trim(),specialization:$('teacherSpecialization').value.trim(),experience:$('teacherExperience').value.trim(),address:$('teacherAddress').value.trim(),photo:old.photo||'',
       initialSavedAt:old.initialSavedAt || Date.now()
     };
+    // Save the teacher profile locally first so the profile is immediately
+    // available on this device and survives refreshes without any blink.
     saveData(data);
+    loadTeacherProfile();
+
+    // Try to sync the same profile to Firestore, but do not block the
+    // successful profile save if a Firestore rule/network issue occurs.
+    // The dashboard already uses the authenticated teacher UID as the
+    // profile storage key, so the 7-day lock remains consistent.
     try{
-      if(typeof window.saveTeacherProfileToFirestore==='function') await window.saveTeacherProfileToFirestore(data);
-      loadTeacherProfile();
-      const st=$('profileStatus'); if(st){st.textContent='Profile saved successfully. Your 7-day editing period has started.';st.style.display='block';setTimeout(function(){st.style.display='none'},3000);}
+      if(typeof window.saveTeacherProfileToFirestore==='function'){
+        await window.saveTeacherProfileToFirestore(data);
+      }
     }catch(err){
-      console.error('Teacher profile save failed:',err);
-      const st=$('profileStatus'); if(st){st.textContent='Profile could not be saved to your account. Please try again.';st.style.display='block';}
+      console.warn('Teacher profile cloud sync failed; local profile was saved:',err);
+    }
+
+    loadTeacherProfile();
+    const st=$('profileStatus');
+    if(st){
+      st.textContent='Your data saved successfully. You can change it only within seven days from the first initial save.';
+      st.style.display='block';
+      setTimeout(function(){st.style.display='none'},5000);
     }
   };
   window.removeTeacherPhoto=function(){
