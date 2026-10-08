@@ -2164,7 +2164,19 @@ async function saveStudentToFirestore(s){
    await window.firebaseFirestoreFns.setDoc(window.firebaseFirestoreFns.doc(db,"teachers",uid,"students",id),studentFirestorePayload(s),{merge:true});
    return id;
  }
- const ref=await window.firebaseFirestoreFns.addDoc(window.firebaseFirestoreFns.collection(db,"teachers",uid,"students"),{...studentFirestorePayload(s),createdAt:window.firebaseFirestoreFns.serverTimestamp()});
+ const ref=await window.firebaseFirestoreFns.addDoc(
+   window.firebaseFirestoreFns.collection(db,"teachers",uid,"students"),
+   {...studentFirestorePayload(s),createdAt:window.firebaseFirestoreFns.serverTimestamp()}
+ );
+
+ try{
+   await window.firebaseFirestoreFns.getDoc(
+     window.firebaseFirestoreFns.doc(db,"teachers",uid,"students",ref.id)
+   );
+ }catch(readErr){
+   throw new Error("Student was created in Firebase, but this teacher cannot read the student record. Update Firestore Rules for teachers/{teacherUid}/students/{studentId}. Original error: "+(readErr&&readErr.message?readErr.message:"permission denied"));
+ }
+
  if(!s[8])s[8]={};
  s[8].firestoreId=ref.id;
  return ref.id;
@@ -2176,11 +2188,7 @@ async function saveAllStudentsToFirestore(){
 }
 window.loadStudentsFromFirestore=async function(){
  const db=window.teacherFirestore,uid=window.firebaseTeacherUID;
- if(!db||!uid){
-   students=[];
-   refreshStudentViews();
-   return;
- }
+ if(!db||!uid) throw new Error("Teacher Firebase account is not ready.");
  try{
    clearLegacyStudentLocalStorage();
 
@@ -2188,7 +2196,7 @@ window.loadStudentsFromFirestore=async function(){
      window.firebaseFirestoreFns.collection(db,"teachers",uid,"students")
    );
 
-   // Firebase is authoritative. Empty collection = zero students.
+   // Firebase is the single source of truth. Empty collection = genuinely zero students.
    students=snap.docs.map(function(d){
      const x=d.data()||{};
      return [
@@ -2213,6 +2221,7 @@ window.loadStudentsFromFirestore=async function(){
 
    refreshStudentViews();
    if(typeof window.renderAttendance==="function") window.renderAttendance();
+
    const sourceNote=document.getElementById("studentFirebaseSourceNote");
    if(sourceNote){
      sourceNote.textContent="🔥 Firebase connected. "+students.length+" student"+(students.length===1?"":"s")+" loaded for this teacher.";
@@ -2223,12 +2232,21 @@ window.loadStudentsFromFirestore=async function(){
    return {ok:true,count:students.length};
  }catch(err){
    console.error("Student Firebase query failed:",err);
-   students=[];
+   // Do not convert a Firebase read failure into an empty student database.
    refreshStudentViews();
    if(typeof window.renderAttendance==="function") window.renderAttendance();
+
+   const sourceNote=document.getElementById("studentFirebaseSourceNote");
+   if(sourceNote){
+     sourceNote.textContent="⚠️ Firebase student records could not be read. Update Firestore Rules for teachers/{teacherUid}/students/{studentId}.";
+     sourceNote.style.background="#fff7e6";
+     sourceNote.style.borderColor="#f1d28a";
+     sourceNote.style.color="#8a5a00";
+   }
    throw err;
- };
+ }
 };
+
 
 function primarySchoolClasses(){
   return ["Primary 1","Primary 2","Primary 3","Primary 4","Primary 5","Primary 6"];
@@ -3119,13 +3137,13 @@ window.addStudentFromForm=async function(){
      sourceNote.style.color="#35505f";
    }
 
-   alert(name+" has been added successfully. The student is now saved in Firebase and is available in C.A, Examination and Results.");
+   alert(name+" has been added successfully and verified in Firebase. The student is now available in C.A, Examination, Results and Attendance.");
  }catch(err){
    console.error("Student save failed:",err);
 
    var message=err&&err.message?err.message:"Unknown error";
-   if(String(message).toLowerCase().indexOf("permission")>=0){
-     message+="\n\nFirestore Rules must allow the signed-in teacher to read and write:\nteachers/{teacherUid}/students/{studentId}";
+   if(String(message).toLowerCase().indexOf("teacher cannot read")>=0 || String(message).toLowerCase().indexOf("permission")>=0){
+     message+="\n\nRequired Firestore Rules:\nteachers/{teacherUid}/students/{studentId} → allow read, write when request.auth.uid == teacherUid.";
    }
 
    // No failed student is left in the local array.
