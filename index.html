@@ -1216,7 +1216,8 @@ table{max-width:100%}
 </style>
 
 <style id="firebase-auth-ui-style">
-#firebaseAuthGate{position:fixed;inset:0;z-index:10000;background:linear-gradient(135deg,#eef8f5,#f4f7fb);display:flex;align-items:center;justify-content:center;padding:18px;overflow:auto}
+#firebaseAuthGate{position:fixed;inset:0;z-index:10000;background:linear-gradient(135deg,#eef8f5,#f4f7fb);display:flex;align-items:center;justify-content:center;padding:18px;overflow:auto;visibility:hidden}
+#firebaseAuthGate.auth-ready{visibility:visible}
 #firebaseAuthGate.auth-hidden{display:none}
 .auth-card{width:min(430px,100%);background:#fff;border:1px solid #dfe7ef;border-radius:20px;box-shadow:0 18px 50px rgba(16,35,63,.14);padding:24px}
 .auth-brand{text-align:center;margin-bottom:20px}.auth-logo{width:64px;height:64px;border-radius:50%;background:#eaf7f2;display:grid;place-items:center;margin:0 auto 10px;font-size:32px}.auth-brand h2{margin:0;color:#075c51;font-size:24px}.auth-brand p{margin:6px 0 0;color:#667085;font-size:13px}
@@ -1673,11 +1674,11 @@ table{max-width:100%}
     </div>
 
     <div class="profile-form-grid">
-      <div class="profile-field"><label>Full Name</label><input id="teacherFullName" value="Mr. Ibrahim" placeholder="Enter full name"></div>
-      <div class="profile-field"><label>Gender</label><select id="teacherGender"><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
+      <div class="profile-field"><label>Full Name <small style="color:#087c60;font-weight:700;">(from account — read-only)</small></label><input id="teacherFullName" value="" placeholder="Account name" readonly></div>
+      <div class="profile-field"><label>Gender</label><select id="teacherGender"><option value="">Select gender</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
       <div class="profile-field"><label>Phone Number</label><input id="teacherPhone" placeholder="Enter phone number"></div>
-      <div class="profile-field"><label>School Name</label><input id="teacherSchool" value="Primary School" placeholder="Enter school name"></div>
-      <div class="profile-field"><label>Teaching Role</label><select id="teacherRole"><option>Class Teacher</option><option>Subject Teacher</option><option>Primary Teacher</option></select></div>
+      <div class="profile-field"><label>School Name</label><input id="teacherSchool" value="" placeholder="Enter school name"></div>
+      <div class="profile-field"><label>Teaching Role</label><select id="teacherRole"><option value="">Select teaching role</option><option>Class Teacher</option><option>Subject Teacher</option><option>Primary Teacher</option></select></div>
       <div class="profile-field"><label>Highest Qualification</label><input id="teacherQualification" placeholder="e.g. NCE, B.Ed"></div>
       <div class="profile-field"><label>Specialization</label><input id="teacherSpecialization" placeholder="e.g. Basic Science & Technology"></div>
       <div class="profile-field"><label>Years of Teaching Experience</label><input id="teacherExperience" type="number" min="0" placeholder="Enter years"></div>
@@ -1948,6 +1949,7 @@ function showSection(id,el){
   document.querySelectorAll("#dashboardView,#lessonsView,#caExamView,#studentsView,#attendanceView,#profileView,#assignmentView,#myClassesView,#myTimetableView,#examTimetableView,#academicSessionView,#settingsView,#subscriptionView,#holidayView").forEach(v=>v.style.display="none");
   const target=document.getElementById(id);
   if(target) target.style.display="block";
+  try{ sessionStorage.setItem("teacherActiveSection",id); }catch(e){}
   setTopNav(el);
   closeMoreMenu();
   window.scrollTo({top:0,behavior:"smooth"});
@@ -3196,7 +3198,7 @@ window.viewStudentResult=function(index){
 
 <script>
 (function(){
-  const defaultPhoto = document.querySelector('.teacher-photo')?.src || '';
+  const defaultPhoto = '';
   function profileStorageKey(){
     const uid=window.firebaseTeacherUID||'';
     return uid ? ('primaryTeacherProfile_'+uid) : 'primaryTeacherProfile__unauthenticated';
@@ -3221,8 +3223,9 @@ window.viewStudentResult=function(index){
   function setFormLocked(locked,data){
     const view=$('profileView');
     if(view) view.classList.toggle('profile-readonly',locked);
-    const ids=['teacherFullName','teacherGender','teacherPhone','teacherSchool','teacherRole','teacherQualification','teacherSpecialization','teacherExperience','teacherAddress'];
+    const ids=['teacherGender','teacherPhone','teacherSchool','teacherRole','teacherQualification','teacherSpecialization','teacherExperience','teacherAddress'];
     ids.forEach(function(id){if($(id)) $(id).disabled=locked;});
+    if($('teacherFullName')){ $('teacherFullName').readOnly=true; $('teacherFullName').disabled=false; $('teacherFullName').title='This name comes from your Firebase account and cannot be edited here.'; }
     ['teacherPhotoInput','teacherCameraInput'].forEach(function(id){if($(id)) $(id).disabled=locked;});
     const reset=$('teacherProfileResetButton'),save=$('teacherProfileSaveButton');
     if(reset) reset.disabled=locked;
@@ -3496,7 +3499,7 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
   const auth = getAuth(app);
   const db = getFirestore(app);
   // Keep the teacher signed in across page refreshes and browser restarts.
-  setPersistence(auth, browserLocalPersistence).catch(err => console.error("Firebase auth persistence setup failed:", err));
+  try { await setPersistence(auth, browserLocalPersistence); } catch(err) { console.error("Firebase auth persistence setup failed:", err); }
   window.firebaseApp = app;
   window.teacherFirebaseAuth = auth;
   window.teacherFirestore = db;
@@ -3532,14 +3535,14 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
   document.getElementById('authShowLogin')?.addEventListener('click',()=>{clearMessage();registerForm.style.display='none';loginForm.style.display='block';subtitle.textContent='Sign in to access your teacher dashboard';});
 
   loginForm?.addEventListener('submit',async e=>{
-    e.preventDefault(); clearMessage(); busy(loginForm,true);
+    e.preventDefault(); clearMessage(); try{sessionStorage.removeItem('teacherActiveSection');}catch(_e){} busy(loginForm,true);
     try{ await signInWithEmailAndPassword(auth,document.getElementById('authEmail').value.trim(),document.getElementById('authPassword').value); }
     catch(err){ message(friendlyError(err)); }
     finally{ busy(loginForm,false); }
   });
 
   registerForm?.addEventListener('submit',async e=>{
-    e.preventDefault(); clearMessage();
+    e.preventDefault(); clearMessage(); try{sessionStorage.removeItem('teacherActiveSection');}catch(_e){}
     const name=document.getElementById('authFullName').value.trim();
     const email=document.getElementById('authRegisterEmail').value.trim();
     const password=document.getElementById('authRegisterPassword').value;
@@ -3587,7 +3590,7 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
   });
 
   window.firebaseTeacherLogout=async function(){
-    try{ await signOut(auth); }catch(err){ message(friendlyError(err)); }
+    try{ try{sessionStorage.removeItem('teacherActiveSection');}catch(_e){} await signOut(auth); }catch(err){ message(friendlyError(err)); }
   };
 
   async function ensureTeacherProfile(user){
@@ -3666,16 +3669,22 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
         applyFirestoreTeacherProfile({},user);
       }
       gate?.classList.add('auth-hidden');
-      if(typeof window.showSection==='function') window.showSection('dashboardView',document.querySelectorAll('.topnav-item')[0]);
+      gate?.classList.add('auth-ready');
+      let activeSection='dashboardView';
+      try{ activeSection=sessionStorage.getItem('teacherActiveSection') || 'dashboardView'; }catch(_e){}
+      const validSections=['dashboardView','lessonsView','caExamView','studentsView','attendanceView','profileView','assignmentView','myClassesView','myTimetableView','examTimetableView','academicSessionView','settingsView','subscriptionView','holidayView'];
+      if(!validSections.includes(activeSection)) activeSection='dashboardView';
+      if(typeof window.showSection==='function') window.showSection(activeSection,null);
+      if(activeSection==='profileView' && typeof window.loadTeacherProfile==='function') window.loadTeacherProfile();
     }else{
       window.firebaseTeacherUID=null;
       window.firebaseTeacherUser=null;
-      if(authInitialized){
-        gate?.classList.remove('auth-hidden');
-        if(loginForm){loginForm.style.display='block';}
-        if(registerForm){registerForm.style.display='none';}
-        if(subtitle){subtitle.textContent='Sign in to access your teacher dashboard';}
-      }
+      if(authInitialized){ try{sessionStorage.removeItem('teacherActiveSection');}catch(_e){} }
+      gate?.classList.remove('auth-hidden');
+      gate?.classList.add('auth-ready');
+      if(loginForm){loginForm.style.display='block';}
+      if(registerForm){registerForm.style.display='none';}
+      if(subtitle){subtitle.textContent='Sign in to access your teacher dashboard';}
     }
     authInitialized=true;
   });
