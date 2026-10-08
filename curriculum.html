@@ -1,23 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Primary School Curriculum Source</title>
-</head>
-<body>
-<!--
-  CURRICULUM DATA SOURCE
-  This file is the source queried by the Teacher Dashboard Lesson Library.
-  Do not put dashboard UI logic here. Add each approved curriculum as a record
-  using: className, subject, term, curriculum, lessonPlans, lessonNotes.
--->
-<script id="curriculum-data" type="application/json">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Primary School Curriculum</title><style>*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f3f7f6;color:#173d3a}.top{background:#087b68;color:#fff;padding:28px 18px;text-align:center}.top h1{margin:0 0 8px;font-size:28px}.top p{margin:0;opacity:.92}.container{max-width:900px;margin:auto;padding:18px}.note{background:#fff8df;border-left:5px solid #d5a900;padding:14px;border-radius:10px;margin-bottom:18px}.filters{background:#fff;padding:15px;border-radius:14px;display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;box-shadow:0 3px 15px #0001}select{padding:10px;border:1px solid #d8e4e1;border-radius:8px;min-width:180px}.class-section{background:#fff;border-radius:18px;padding:18px;margin:20px 0;box-shadow:0 4px 18px #0000000d}.section-head{display:flex;justify-content:space-between;gap:15px;align-items:center;border-bottom:1px solid #e5eeee;padding-bottom:15px}.badge{display:inline-block;background:#087b68;color:#fff;padding:7px 12px;border-radius:999px;font-weight:bold;font-size:13px}.section-head h1{margin:10px 0 3px;font-size:24px}.section-head p{margin:0;color:#687c7a}.summary{background:#e8f7f3;border-radius:12px;padding:12px 16px;text-align:center}.summary b{display:block;font-size:25px;color:#087b68}.summary small{color:#55706c}.week{border:1px solid #e1e9e7;border-radius:14px;margin-top:15px;overflow:hidden}.week-title{background:#edf8f5;padding:13px 15px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}.week-title span{font-weight:bold;color:#087b68}.week-title h2{margin:0;font-size:18px;flex:1}.week-title em{font-size:12px;color:#6d7c79}.period{padding:14px 15px;border-top:1px solid #edf0ef}.period-head{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}.period-head span{background:#0d8d78;color:#fff;padding:5px 9px;border-radius:7px;font-size:12px;font-weight:bold}.period-head b{font-size:16px;line-height:1.4}.period ul{margin:10px 0 12px 20px;padding:0;color:#536663}.period li{margin:5px 0}.footer{text-align:center;color:#6d7c79;padding:20px;font-size:12px}</style></head><body><header class="top"><h1>📚 Primary School Curriculum</h1><p>Curriculum source • Primary 5 &amp; Primary 6 • Basic Science &amp; Technology • First Term</p></header><main class="container"><div class="note"><b>This is the curriculum source used by the Teacher Dashboard.</b><br>The Lesson Library in <code>index.html</code> reads the structured data below. The visible page lets you inspect exactly what has been added.</div><div class="filters"><select id="viewClass"><option value="">All Classes</option><option>Primary 5</option><option>Primary 6</option></select><select disabled><option>Basic Science &amp; Technology</option></select><select disabled><option>First Term</option></select></div><div id="preview"></div></main><div class="footer">Curriculum source • Data is embedded in this HTML for the dashboard to query.</div><script id="curriculum-data" type="application/json">
 {
-  "version": 2,
+  "version": 6,
   "records": [
     {
-      "id": "primary5-basic-science-first-term",
       "className": "Primary 5",
       "subject": "Basic Science & Technology",
       "term": "First Term",
@@ -29,19 +14,17 @@
               "title": "Erosion — Meaning, Causes, Effects and Control",
               "subcontents": [
                 "Erosion",
-                "Causes",
-                "Effects",
-                "Control"
-              ]
+                "Causes"
+              ],
+              "periodLabel": "Period 1"
             },
             {
-              "title": "Air and Water Pollution — Sources, Effects and Control",
+              "title": "Erosion — Meaning, Causes, Effects and Control",
               "subcontents": [
-                "Air and water pollution",
-                "Sources",
                 "Effects",
                 "Control"
-              ]
+              ],
+              "periodLabel": "Period 2"
             }
           ]
         },
@@ -52,14 +35,16 @@
               "title": "Types of Bones and Examples",
               "subcontents": [
                 "Types of bones: femur, humerus, cervical/thoracic vertebrae, phalanges"
-              ]
+              ],
+              "periodLabel": "Period 1"
             },
             {
               "title": "Types of Joints and Functions of Bones and Joints",
               "subcontents": [
                 "Types of joints: ball-and-socket (shoulder), hinge (elbow & knee)",
                 "Functions of bones and joints"
-              ]
+              ],
+              "periodLabel": "Period 2"
             }
           ]
         },
@@ -72,21 +57,24 @@
                 "Acids and bases",
                 "Meaning and examples",
                 "Some physical properties"
-              ]
+              ],
+              "periodLabel": "Period 1"
             },
             {
               "title": "Types and Uses of Acids and Bases",
               "subcontents": [
                 "Types of acid and bases",
                 "Uses of acid and bases"
-              ]
+              ],
+              "periodLabel": "Period 2"
             },
             {
               "title": "Soap Making and Uses of Soap",
               "subcontents": [
                 "Soap making",
                 "Uses of soap"
-              ]
+              ],
+              "periodLabel": "Period 3"
             }
           ]
         },
@@ -98,14 +86,16 @@
               "subcontents": [
                 "Definition of drawing",
                 "Identification of drawing instruments"
-              ]
+              ],
+              "periodLabel": "Period 1"
             },
             {
               "title": "Using Drawing Instruments",
               "subcontents": [
                 "Circles using compass",
                 "Straight lines using rulers"
-              ]
+              ],
+              "periodLabel": "Period 2"
             }
           ]
         },
@@ -118,21 +108,24 @@
                 "Types of electricity",
                 "Static",
                 "Current"
-              ]
+              ],
+              "periodLabel": "Period 1"
             },
             {
               "title": "Generating Electricity and Conductors",
               "subcontents": [
                 "Method of generating electricity",
                 "Conductors and non-conductors"
-              ]
+              ],
+              "periodLabel": "Period 2"
             },
             {
               "title": "Electricity Circuit and Uses",
               "subcontents": [
                 "Electricity circuit",
                 "Uses of electricity"
-              ]
+              ],
+              "periodLabel": "Period 3"
             }
           ]
         },
@@ -145,7 +138,8 @@
                 "Machinery",
                 "Galloping",
                 "Hopping"
-              ]
+              ],
+              "periodLabel": "Period 1"
             }
           ]
         },
@@ -156,19 +150,22 @@
               "title": "Endurance Exercises",
               "subcontents": [
                 "Endurance: press up, minute run, walk bench, step on and step off, squat thrusts"
-              ]
+              ],
+              "periodLabel": "Period 1"
             },
             {
               "title": "Strength Exercises",
               "subcontents": [
                 "Strength: pull up, sit up"
-              ]
+              ],
+              "periodLabel": "Period 2"
             },
             {
               "title": "Speed Exercise",
               "subcontents": [
                 "Speed: 50 metres dash"
-              ]
+              ],
+              "periodLabel": "Period 3"
             }
           ]
         },
@@ -180,13 +177,15 @@
               "subcontents": [
                 "Source of food nutrients",
                 "Nutritional deficiency diseases: Kwashiorkor, Rickets, Pellagra, Scurvy"
-              ]
+              ],
+              "periodLabel": "Period 1"
             },
             {
               "title": "Characteristics of Nutritional Deficiency Diseases",
               "subcontents": [
                 "Characteristics of these deficiencies"
-              ]
+              ],
+              "periodLabel": "Period 2"
             }
           ]
         },
@@ -197,7 +196,8 @@
               "title": "Family Size and Its Effect on Nutrition",
               "subcontents": [
                 "Family size and its effect on nutrition"
-              ]
+              ],
+              "periodLabel": "Period 1"
             }
           ]
         },
@@ -208,238 +208,947 @@
               "title": "Academically Ordered Computer Games",
               "subcontents": [
                 "Academically ordered computer games e.g. price test, dive, Mario etc."
-              ]
+              ],
+              "periodLabel": "Period 1"
             }
           ]
         }
-      ],
-      "lessonPlans": {},
-      "lessonNotes": {}
+      ]
     },
     {
-      "id": "primary6-basic-science-first-term",
       "className": "Primary 6",
       "subject": "Basic Science & Technology",
       "term": "First Term",
       "curriculum": [
         {
-          "week": 1,
           "topic": "The Solar System",
-          "contents": "Our Solar System; The Planets; Gravity and weightlessness",
           "periods": [
             {
-              "title": "Our Solar System and The Planets",
+              "title": "Our Solar System",
               "subcontents": [
-                "Our Solar System",
-                "The Planets"
-              ]
+                "Our Solar System"
+              ],
+              "periodLabel": "Period 1"
             },
             {
-              "title": "Gravity and Weightlessness",
+              "title": "The Planet; Gravity and weightlessness",
               "subcontents": [
+                "The Planet",
                 "Gravity and weightlessness"
-              ]
+              ],
+              "periodLabel": "Period 2"
             }
           ]
         },
         {
-          "week": 2,
           "topic": "The Human Body System – Blood Circulation",
-          "contents": "The Human Heart Structure and its function; Blood vessels – arteries, and capillaries; Blood circulation",
           "periods": [
             {
-              "title": "The Human Heart Structure and its Function",
+              "title": "The Human Heart Structure and its function",
               "subcontents": [
-                "The Human Heart Structure",
-                "Its function"
-              ]
+                "The Human Heart Structure and its function"
+              ],
+              "periodLabel": "Period 1"
             },
             {
-              "title": "Blood Vessels and Blood Circulation",
+              "title": "Blood vessels and blood circulation",
               "subcontents": [
-                "Blood vessels – arteries, and capillaries",
+                "Blood vessels – arteries and capillaries",
                 "Blood circulation"
-              ]
+              ],
+              "periodLabel": "Period 2"
             }
           ]
         },
         {
-          "week": 3,
           "topic": "Minerals Resources",
-          "contents": "Content 1 is not legible in the supplied photograph; Physical characteristics of the major minerals resources; Importance of mineral resources in industries, Transport/communication, The Economy",
           "periods": [
             {
-              "title": "Mineral Resources — Content 1 and Physical Characteristics",
+              "title": "Content 1 (not legible in supplied photograph)",
               "subcontents": [
-                "Content 1 — not legible in the supplied photograph",
-                "Physical characteristics of the major minerals resources"
-              ]
+                "Not legible in the supplied photograph"
+              ],
+              "periodLabel": "Period 1"
             },
             {
-              "title": "Importance of Mineral Resources",
+              "title": "Physical characteristics and importance of mineral resources",
               "subcontents": [
+                "Physical characteristics of the major minerals resources",
                 "Importance of mineral resources in industries",
                 "Transport/communication",
                 "The Economy"
-              ]
+              ],
+              "periodLabel": "Period 2"
             }
           ]
         },
         {
-          "week": 4,
-          "topic": "Introduction to wood work (Hand tools)",
-          "contents": "Hand tools; Measuring tools, tape rule, steel rule; Marking tools – scriber, gauges, and centre punch; Cutting tools saw and knives",
+          "topic": "Introduction to wood work (Hand-tool)",
           "periods": [
             {
-              "title": "Hand Tools and Measuring Tools",
+              "title": "Hand and measuring tools",
               "subcontents": [
                 "Hand tools",
-                "Measuring tools, tape rule, steel rule"
-              ]
+                "Measuring tools, tape rule, and rule"
+              ],
+              "periodLabel": "Period 1"
             },
             {
-              "title": "Marking Tools and Cutting Tools",
+              "title": "Marking and cutting tools",
               "subcontents": [
                 "Marking tools – scriber, gauges, and centre punch",
-                "Cutting tools saw and knives"
-              ]
+                "Cutting tools – saw and chisels"
+              ],
+              "periodLabel": "Period 2"
             }
           ]
         },
         {
-          "week": 5,
           "topic": "Inclined planes",
-          "contents": "Examples of inclined plane; Advantages of inclined plane",
           "periods": [
             {
-              "title": "Examples of Inclined Plane",
+              "title": "Examples of inclined plane",
               "subcontents": [
                 "Examples of inclined plane"
-              ]
+              ],
+              "periodLabel": "Period 1"
             },
             {
-              "title": "Advantages of Inclined Plane",
+              "title": "Advantages of inclined plane",
               "subcontents": [
                 "Advantages of inclined plane"
-              ]
+              ],
+              "periodLabel": "Period 2"
             }
           ]
         },
         {
-          "week": 6,
           "topic": "Ball Games",
-          "contents": "Rules and regulation of ball games; The key officials of football, table tennis, volley ball, basket ball, hockey and hand ball; Playing the game of football, table tennis, volley ball, basket ball, hockey and hand ball by observing the rules; Position the players in the games",
           "periods": [
             {
-              "title": "Rules and Regulations of Ball Games",
+              "title": "Rules and regulations of ball games",
               "subcontents": [
                 "Rules and regulation of ball games",
-                "Football, table tennis, volley ball, basket ball, hockey and hand ball"
-              ]
+                "Football, table tennis, volleyball, basketball, hockey and handball"
+              ],
+              "periodLabel": "Period 1"
             },
             {
-              "title": "Key Officials of Ball Games",
+              "title": "Key officials of ball games",
               "subcontents": [
-                "The key officials of football, table tennis, volley ball, basket ball, hockey and hand ball"
-              ]
+                "The key officials of football, table tennis, volleyball, basketball, hockey and handball"
+              ],
+              "periodLabel": "Period 2"
             },
             {
-              "title": "Playing Ball Games and Player Positions",
+              "title": "Playing games and player positions",
               "subcontents": [
-                "Playing the game of football, table tennis, volley ball, basket ball, hockey and hand ball by observing the rules",
-                "Position the players in the games"
-              ]
+                "Playing the games by observing the rules",
+                "Positions of the players in the games"
+              ],
+              "periodLabel": "Period 3"
             }
           ]
         },
         {
-          "week": 7,
           "topic": "Uses of medicine",
-          "contents": "Features for identify fake medicine; Normal use of medicine; Excessive use of medicine",
           "periods": [
             {
-              "title": "Identifying Fake Medicine and Normal Use of Medicine",
+              "title": "Identifying fake medicine",
               "subcontents": [
-                "Features for identify fake medicine",
-                "Normal use of medicine"
-              ]
+                "Features for identify fake medicine"
+              ],
+              "periodLabel": "Period 1"
             },
             {
-              "title": "Excessive Use of Medicine",
+              "title": "Normal and excessive use of medicine",
               "subcontents": [
+                "Normal use of medicine",
                 "Excessive use of medicine"
-              ]
+              ],
+              "periodLabel": "Period 2"
             }
           ]
         },
         {
-          "week": 8,
           "topic": "Precaution in the use of computer",
-          "contents": "Use un-interrupted power supply; Care of the human ware eg. posture, positioning of the monitor; Cure for the users – to fatigue and avoid injuries",
           "periods": [
             {
-              "title": "Power Supply and Care of the User",
+              "title": "Power supply and hardware care",
               "subcontents": [
-                "Use un-interrupted power supply",
-                "Care of the human ware eg. posture, positioning of the monitor"
-              ]
+                "Use uninterrupted power supply",
+                "Care of the hardware e.g. posture, positioning of the monitor"
+              ],
+              "periodLabel": "Period 1"
             },
             {
-              "title": "Preventing Fatigue and Injuries",
+              "title": "Care for computer users",
               "subcontents": [
-                "Cure for the users – to fatigue and avoid injuries"
-              ]
+                "Care for the users – to avoid fatigue and injuries"
+              ],
+              "periodLabel": "Period 2"
             }
           ]
         },
         {
-          "week": 9,
           "topic": "Classification, uses common IT gadgets",
-          "contents": "Classification of common IT gadgets; Computers, laptops, handheld computer, I pad, I tap; Audio/Video gadgets, I-Pad, Home Theater, MP3, MP4, digital camera",
           "periods": [
             {
-              "title": "Classification of Common IT Gadgets",
+              "title": "Classification of common IT gadgets",
               "subcontents": [
                 "Classification of common IT gadgets",
-                "Computers, laptops, handheld computer, I pad, I tap"
-              ]
+                "Computers, laptops, handheld computer, I pad, I tap",
+                "Audio/Video gadgets, I-Pad, Home Theater, MP3, MP4, digital camera"
+              ],
+              "periodLabel": "Period 1"
             },
             {
-              "title": "Audio/Video IT Gadgets",
+              "title": "Uses of common IT gadgets",
               "subcontents": [
-                "Audio/Video gadgets, I-Pad, Home Theater, MP3, MP4, digital camera"
-              ]
+                "Uses of common IT gadgets"
+              ],
+              "periodLabel": "Period 2"
             }
           ]
         },
         {
-          "week": 10,
           "topic": "Classification, uses common IT gadgets",
-          "contents": "Storage devices – flash memory card, external hard drive; Smart phone, blackberry, android phones I-pad; Uses of some IT gadgets – Word Processing; Telephone Conversation",
           "periods": [
             {
-              "title": "Storage Devices and Smart/Portable Devices",
+              "title": "Storage devices and mobile devices",
               "subcontents": [
-                "Storage devices – flash memory card, external hard drive",
-                "Smart phone, blackberry, android phones I-pad"
-              ]
+                "Storage devices – flash memory card, external hard disc",
+                "Smart phone, blackberry, Android phones I-pad"
+              ],
+              "periodLabel": "Period 1"
             },
             {
-              "title": "Uses of Some IT Gadgets",
+              "title": "Uses of some IT gadgets",
               "subcontents": [
                 "Uses of some IT gadgets",
                 "Word Processing",
                 "Telephone Conversation"
-              ]
+              ],
+              "periodLabel": "Period 2"
             }
           ]
         }
       ],
-      "lessonPlans": [],
-      "lessonNotes": []
+      "lessonPlans": [
+        {
+          "week": 1,
+          "period": 1,
+          "duration": "40 minutes",
+          "topic": "The Solar System",
+          "subtopic": "Our Solar System and The Planets",
+          "previous": "Pupils' previous knowledge of the topic from home, earlier classes or everyday experience.",
+          "objectives": "1. Pupils should be able to explain our solar system.\n2. Pupils should be able to explain the planets.",
+          "materials": "Textbook/curriculum material, board and marker/chalk, relevant pictures or real objects where available.",
+          "reference": "Supplied Basic Science & Technology Primary Six curriculum; teacher's approved textbook/reference material.",
+          "entry": "Teacher asks simple questions about our solar system and allows pupils to share what they already know.",
+          "content": "<p><b>Our Solar System</b></p>\n<p><b>The Planets</b></p><p>The Solar System is made up of the Sun and the objects that move around it. The Sun is a star and is the main source of light and heat for Earth.</p>\n<p>The planets move around the Sun in their orbits. The planets are Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus and Neptune.</p>",
+          "presentation": "<p><b>Step 1:</b> Introduce the topic and connect it with pupils' experience.</p><p><b>Step 2:</b> Explain the listed content using examples, pictures or demonstrations where appropriate.</p><p><b>Step 3:</b> Ask questions and allow pupils to identify, describe or demonstrate the concepts.</p><p><b>Step 4:</b> Summarise the key points and correct misconceptions.</p>",
+          "teacher": "<p>Introduces the lesson, explains the concepts, demonstrates or shows relevant examples, asks questions, supervises activities and gives corrections.</p>",
+          "pupils": "<p>Listen, observe, answer questions, participate in discussion/activity and write the important points.</p>",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "conclusion": "<p>Teacher revises the key points with the pupils and emphasises safe and correct application of the knowledge.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Our Solar System and The Planets</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 1,
+          "period": 2,
+          "duration": "40 minutes",
+          "topic": "The Solar System",
+          "subtopic": "Gravity and Weightlessness",
+          "previous": "Pupils' previous knowledge of the topic from home, earlier classes or everyday experience.",
+          "objectives": "1. Pupils should be able to explain gravity and weightlessness.",
+          "materials": "Textbook/curriculum material, board and marker/chalk, relevant pictures or real objects where available.",
+          "reference": "Supplied Basic Science & Technology Primary Six curriculum; teacher's approved textbook/reference material.",
+          "entry": "Teacher asks simple questions about gravity and weightlessness and allows pupils to share what they already know.",
+          "content": "<p><b>Gravity and weightlessness</b></p><p>The Solar System is made up of the Sun and the objects that move around it. The Sun is a star and is the main source of light and heat for Earth.</p>\n<p>The planets move around the Sun in their orbits. The planets are Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus and Neptune.</p>",
+          "presentation": "<p><b>Step 1:</b> Introduce the topic and connect it with pupils' experience.</p><p><b>Step 2:</b> Explain the listed content using examples, pictures or demonstrations where appropriate.</p><p><b>Step 3:</b> Ask questions and allow pupils to identify, describe or demonstrate the concepts.</p><p><b>Step 4:</b> Summarise the key points and correct misconceptions.</p>",
+          "teacher": "<p>Introduces the lesson, explains the concepts, demonstrates or shows relevant examples, asks questions, supervises activities and gives corrections.</p>",
+          "pupils": "<p>Listen, observe, answer questions, participate in discussion/activity and write the important points.</p>",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "conclusion": "<p>Teacher revises the key points with the pupils and emphasises safe and correct application of the knowledge.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Gravity and Weightlessness</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 2,
+          "period": 1,
+          "duration": "40 minutes",
+          "topic": "The Human Body System – Blood Circulation",
+          "subtopic": "The Human Heart Structure and its Function",
+          "previous": "Pupils' previous knowledge of the topic from home, earlier classes or everyday experience.",
+          "objectives": "1. Pupils should be able to explain the human heart structure.\n2. Pupils should be able to explain its function.",
+          "materials": "Textbook/curriculum material, board and marker/chalk, relevant pictures or real objects where available.",
+          "reference": "Supplied Basic Science & Technology Primary Six curriculum; teacher's approved textbook/reference material.",
+          "entry": "Teacher asks simple questions about the human heart structure and allows pupils to share what they already know.",
+          "content": "<p><b>The Human Heart Structure</b></p>\n<p><b>Its function</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "presentation": "<p><b>Step 1:</b> Introduce the topic and connect it with pupils' experience.</p><p><b>Step 2:</b> Explain the listed content using examples, pictures or demonstrations where appropriate.</p><p><b>Step 3:</b> Ask questions and allow pupils to identify, describe or demonstrate the concepts.</p><p><b>Step 4:</b> Summarise the key points and correct misconceptions.</p>",
+          "teacher": "<p>Introduces the lesson, explains the concepts, demonstrates or shows relevant examples, asks questions, supervises activities and gives corrections.</p>",
+          "pupils": "<p>Listen, observe, answer questions, participate in discussion/activity and write the important points.</p>",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "conclusion": "<p>Teacher revises the key points with the pupils and emphasises safe and correct application of the knowledge.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>The Human Heart Structure and its Function</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 2,
+          "period": 2,
+          "duration": "40 minutes",
+          "topic": "The Human Body System – Blood Circulation",
+          "subtopic": "Blood Vessels and Blood Circulation",
+          "previous": "Pupils' previous knowledge of the topic from home, earlier classes or everyday experience.",
+          "objectives": "1. Pupils should be able to explain blood vessels – arteries, and capillaries.\n2. Pupils should be able to explain blood circulation.",
+          "materials": "Textbook/curriculum material, board and marker/chalk, relevant pictures or real objects where available.",
+          "reference": "Supplied Basic Science & Technology Primary Six curriculum; teacher's approved textbook/reference material.",
+          "entry": "Teacher asks simple questions about blood vessels – arteries, and capillaries and allows pupils to share what they already know.",
+          "content": "<p><b>Blood vessels – arteries, and capillaries</b></p>\n<p><b>Blood circulation</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "presentation": "<p><b>Step 1:</b> Introduce the topic and connect it with pupils' experience.</p><p><b>Step 2:</b> Explain the listed content using examples, pictures or demonstrations where appropriate.</p><p><b>Step 3:</b> Ask questions and allow pupils to identify, describe or demonstrate the concepts.</p><p><b>Step 4:</b> Summarise the key points and correct misconceptions.</p>",
+          "teacher": "<p>Introduces the lesson, explains the concepts, demonstrates or shows relevant examples, asks questions, supervises activities and gives corrections.</p>",
+          "pupils": "<p>Listen, observe, answer questions, participate in discussion/activity and write the important points.</p>",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "conclusion": "<p>Teacher revises the key points with the pupils and emphasises safe and correct application of the knowledge.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Blood Vessels and Blood Circulation</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 3,
+          "period": 1,
+          "duration": "40 minutes",
+          "topic": "Minerals Resources",
+          "subtopic": "Mineral Resources — Content 1 and Physical Characteristics",
+          "previous": "Pupils' previous knowledge of the topic from home, earlier classes or everyday experience.",
+          "objectives": "1. Pupils should be able to explain content 1 — not legible in the supplied photograph.\n2. Pupils should be able to explain physical characteristics of the major minerals resources.",
+          "materials": "Textbook/curriculum material, board and marker/chalk, relevant pictures or real objects where available.",
+          "reference": "Supplied Basic Science & Technology Primary Six curriculum; teacher's approved textbook/reference material.",
+          "entry": "Teacher asks simple questions about content 1 — not legible in the supplied photograph and allows pupils to share what they already know.",
+          "content": "<p><b>Content 1 — not legible in the supplied photograph</b> — This item is retained exactly as indicated in the supplied curriculum image. No missing content has been invented.</p>\n<p><b>Physical characteristics of the major minerals resources</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "presentation": "<p><b>Step 1:</b> Introduce the topic and connect it with pupils' experience.</p><p><b>Step 2:</b> Explain the listed content using examples, pictures or demonstrations where appropriate.</p><p><b>Step 3:</b> Ask questions and allow pupils to identify, describe or demonstrate the concepts.</p><p><b>Step 4:</b> Summarise the key points and correct misconceptions.</p>",
+          "teacher": "<p>Introduces the lesson, explains the concepts, demonstrates or shows relevant examples, asks questions, supervises activities and gives corrections.</p>",
+          "pupils": "<p>Listen, observe, answer questions, participate in discussion/activity and write the important points.</p>",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "conclusion": "<p>Teacher revises the key points with the pupils and emphasises safe and correct application of the knowledge.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Mineral Resources — Content 1 and Physical Characteristics</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 3,
+          "period": 2,
+          "duration": "40 minutes",
+          "topic": "Minerals Resources",
+          "subtopic": "Importance of Mineral Resources",
+          "previous": "Pupils' previous knowledge of the topic from home, earlier classes or everyday experience.",
+          "objectives": "1. Pupils should be able to explain importance of mineral resources in industries.\n2. Pupils should be able to explain transport/communication.\n3. Pupils should be able to explain the economy.",
+          "materials": "Textbook/curriculum material, board and marker/chalk, relevant pictures or real objects where available.",
+          "reference": "Supplied Basic Science & Technology Primary Six curriculum; teacher's approved textbook/reference material.",
+          "entry": "Teacher asks simple questions about importance of mineral resources in industries and allows pupils to share what they already know.",
+          "content": "<p><b>Importance of mineral resources in industries</b></p>\n<p><b>Transport/communication</b></p>\n<p><b>The Economy</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "presentation": "<p><b>Step 1:</b> Introduce the topic and connect it with pupils' experience.</p><p><b>Step 2:</b> Explain the listed content using examples, pictures or demonstrations where appropriate.</p><p><b>Step 3:</b> Ask questions and allow pupils to identify, describe or demonstrate the concepts.</p><p><b>Step 4:</b> Summarise the key points and correct misconceptions.</p>",
+          "teacher": "<p>Introduces the lesson, explains the concepts, demonstrates or shows relevant examples, asks questions, supervises activities and gives corrections.</p>",
+          "pupils": "<p>Listen, observe, answer questions, participate in discussion/activity and write the important points.</p>",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "conclusion": "<p>Teacher revises the key points with the pupils and emphasises safe and correct application of the knowledge.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Importance of Mineral Resources</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 4,
+          "period": 1,
+          "duration": "40 minutes",
+          "topic": "Introduction to wood work (Hand tools)",
+          "subtopic": "Hand Tools and Measuring Tools",
+          "previous": "Pupils' previous knowledge of the topic from home, earlier classes or everyday experience.",
+          "objectives": "1. Pupils should be able to explain hand tools.\n2. Pupils should be able to explain measuring tools, tape rule, steel rule.",
+          "materials": "Textbook/curriculum material, board and marker/chalk, relevant pictures or real objects where available.",
+          "reference": "Supplied Basic Science & Technology Primary Six curriculum; teacher's approved textbook/reference material.",
+          "entry": "Teacher asks simple questions about hand tools and allows pupils to share what they already know.",
+          "content": "<p><b>Hand tools</b></p>\n<p><b>Measuring tools, tape rule, steel rule</b></p><p>Woodwork uses different hand tools for measuring, marking, cutting and shaping wood. Measuring tools include the tape rule and steel rule.</p>\n<p>Tools should be handled carefully, kept clean and stored properly after use.</p>",
+          "presentation": "<p><b>Step 1:</b> Introduce the topic and connect it with pupils' experience.</p><p><b>Step 2:</b> Explain the listed content using examples, pictures or demonstrations where appropriate.</p><p><b>Step 3:</b> Ask questions and allow pupils to identify, describe or demonstrate the concepts.</p><p><b>Step 4:</b> Summarise the key points and correct misconceptions.</p>",
+          "teacher": "<p>Introduces the lesson, explains the concepts, demonstrates or shows relevant examples, asks questions, supervises activities and gives corrections.</p>",
+          "pupils": "<p>Listen, observe, answer questions, participate in discussion/activity and write the important points.</p>",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "conclusion": "<p>Teacher revises the key points with the pupils and emphasises safe and correct application of the knowledge.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Hand Tools and Measuring Tools</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 4,
+          "period": 2,
+          "duration": "40 minutes",
+          "topic": "Introduction to wood work (Hand tools)",
+          "subtopic": "Marking Tools and Cutting Tools",
+          "previous": "Pupils' previous knowledge of the topic from home, earlier classes or everyday experience.",
+          "objectives": "1. Pupils should be able to explain marking tools – scriber, gauges, and centre punch.\n2. Pupils should be able to explain cutting tools saw and knives.",
+          "materials": "Textbook/curriculum material, board and marker/chalk, relevant pictures or real objects where available.",
+          "reference": "Supplied Basic Science & Technology Primary Six curriculum; teacher's approved textbook/reference material.",
+          "entry": "Teacher asks simple questions about marking tools – scriber, gauges, and centre punch and allows pupils to share what they already know.",
+          "content": "<p><b>Marking tools – scriber, gauges, and centre punch</b></p>\n<p><b>Cutting tools saw and knives</b></p><p>Woodwork uses different hand tools for measuring, marking, cutting and shaping wood. Measuring tools include the tape rule and steel rule.</p>\n<p>Tools should be handled carefully, kept clean and stored properly after use.</p>",
+          "presentation": "<p><b>Step 1:</b> Introduce the topic and connect it with pupils' experience.</p><p><b>Step 2:</b> Explain the listed content using examples, pictures or demonstrations where appropriate.</p><p><b>Step 3:</b> Ask questions and allow pupils to identify, describe or demonstrate the concepts.</p><p><b>Step 4:</b> Summarise the key points and correct misconceptions.</p>",
+          "teacher": "<p>Introduces the lesson, explains the concepts, demonstrates or shows relevant examples, asks questions, supervises activities and gives corrections.</p>",
+          "pupils": "<p>Listen, observe, answer questions, participate in discussion/activity and write the important points.</p>",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "conclusion": "<p>Teacher revises the key points with the pupils and emphasises safe and correct application of the knowledge.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Marking Tools and Cutting Tools</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 5,
+          "period": 1,
+          "duration": "40 minutes",
+          "topic": "Inclined planes",
+          "subtopic": "Examples of Inclined Plane",
+          "previous": "Pupils' previous knowledge of the topic from home, earlier classes or everyday experience.",
+          "objectives": "1. Pupils should be able to explain examples of inclined plane.",
+          "materials": "Textbook/curriculum material, board and marker/chalk, relevant pictures or real objects where available.",
+          "reference": "Supplied Basic Science & Technology Primary Six curriculum; teacher's approved textbook/reference material.",
+          "entry": "Teacher asks simple questions about examples of inclined plane and allows pupils to share what they already know.",
+          "content": "<p><b>Examples of inclined plane</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "presentation": "<p><b>Step 1:</b> Introduce the topic and connect it with pupils' experience.</p><p><b>Step 2:</b> Explain the listed content using examples, pictures or demonstrations where appropriate.</p><p><b>Step 3:</b> Ask questions and allow pupils to identify, describe or demonstrate the concepts.</p><p><b>Step 4:</b> Summarise the key points and correct misconceptions.</p>",
+          "teacher": "<p>Introduces the lesson, explains the concepts, demonstrates or shows relevant examples, asks questions, supervises activities and gives corrections.</p>",
+          "pupils": "<p>Listen, observe, answer questions, participate in discussion/activity and write the important points.</p>",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "conclusion": "<p>Teacher revises the key points with the pupils and emphasises safe and correct application of the knowledge.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Examples of Inclined Plane</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 5,
+          "period": 2,
+          "duration": "40 minutes",
+          "topic": "Inclined planes",
+          "subtopic": "Advantages of Inclined Plane",
+          "previous": "Pupils' previous knowledge of the topic from home, earlier classes or everyday experience.",
+          "objectives": "1. Pupils should be able to explain advantages of inclined plane.",
+          "materials": "Textbook/curriculum material, board and marker/chalk, relevant pictures or real objects where available.",
+          "reference": "Supplied Basic Science & Technology Primary Six curriculum; teacher's approved textbook/reference material.",
+          "entry": "Teacher asks simple questions about advantages of inclined plane and allows pupils to share what they already know.",
+          "content": "<p><b>Advantages of inclined plane</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "presentation": "<p><b>Step 1:</b> Introduce the topic and connect it with pupils' experience.</p><p><b>Step 2:</b> Explain the listed content using examples, pictures or demonstrations where appropriate.</p><p><b>Step 3:</b> Ask questions and allow pupils to identify, describe or demonstrate the concepts.</p><p><b>Step 4:</b> Summarise the key points and correct misconceptions.</p>",
+          "teacher": "<p>Introduces the lesson, explains the concepts, demonstrates or shows relevant examples, asks questions, supervises activities and gives corrections.</p>",
+          "pupils": "<p>Listen, observe, answer questions, participate in discussion/activity and write the important points.</p>",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "conclusion": "<p>Teacher revises the key points with the pupils and emphasises safe and correct application of the knowledge.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Advantages of Inclined Plane</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 6,
+          "period": 1,
+          "duration": "40 minutes",
+          "topic": "Ball Games",
+          "subtopic": "Rules and Regulations of Ball Games",
+          "previous": "Pupils' previous knowledge of the topic from home, earlier classes or everyday experience.",
+          "objectives": "1. Pupils should be able to explain rules and regulation of ball games.\n2. Pupils should be able to explain football, table tennis, volley ball, basket ball, hockey and hand ball.",
+          "materials": "Textbook/curriculum material, board and marker/chalk, relevant pictures or real objects where available.",
+          "reference": "Supplied Basic Science & Technology Primary Six curriculum; teacher's approved textbook/reference material.",
+          "entry": "Teacher asks simple questions about rules and regulation of ball games and allows pupils to share what they already know.",
+          "content": "<p><b>Rules and regulation of ball games</b></p>\n<p><b>Football, table tennis, volley ball, basket ball, hockey and hand ball</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "presentation": "<p><b>Step 1:</b> Introduce the topic and connect it with pupils' experience.</p><p><b>Step 2:</b> Explain the listed content using examples, pictures or demonstrations where appropriate.</p><p><b>Step 3:</b> Ask questions and allow pupils to identify, describe or demonstrate the concepts.</p><p><b>Step 4:</b> Summarise the key points and correct misconceptions.</p>",
+          "teacher": "<p>Introduces the lesson, explains the concepts, demonstrates or shows relevant examples, asks questions, supervises activities and gives corrections.</p>",
+          "pupils": "<p>Listen, observe, answer questions, participate in discussion/activity and write the important points.</p>",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "conclusion": "<p>Teacher revises the key points with the pupils and emphasises safe and correct application of the knowledge.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Rules and Regulations of Ball Games</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 6,
+          "period": 2,
+          "duration": "40 minutes",
+          "topic": "Ball Games",
+          "subtopic": "Key Officials of Ball Games",
+          "previous": "Pupils' previous knowledge of the topic from home, earlier classes or everyday experience.",
+          "objectives": "1. Pupils should be able to explain the key officials of football, table tennis, volley ball, basket ball, hockey and hand ball.",
+          "materials": "Textbook/curriculum material, board and marker/chalk, relevant pictures or real objects where available.",
+          "reference": "Supplied Basic Science & Technology Primary Six curriculum; teacher's approved textbook/reference material.",
+          "entry": "Teacher asks simple questions about the key officials of football, table tennis, volley ball, basket ball, hockey and hand ball and allows pupils to share what they already know.",
+          "content": "<p><b>The key officials of football, table tennis, volley ball, basket ball, hockey and hand ball</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "presentation": "<p><b>Step 1:</b> Introduce the topic and connect it with pupils' experience.</p><p><b>Step 2:</b> Explain the listed content using examples, pictures or demonstrations where appropriate.</p><p><b>Step 3:</b> Ask questions and allow pupils to identify, describe or demonstrate the concepts.</p><p><b>Step 4:</b> Summarise the key points and correct misconceptions.</p>",
+          "teacher": "<p>Introduces the lesson, explains the concepts, demonstrates or shows relevant examples, asks questions, supervises activities and gives corrections.</p>",
+          "pupils": "<p>Listen, observe, answer questions, participate in discussion/activity and write the important points.</p>",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "conclusion": "<p>Teacher revises the key points with the pupils and emphasises safe and correct application of the knowledge.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Key Officials of Ball Games</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 6,
+          "period": 3,
+          "duration": "40 minutes",
+          "topic": "Ball Games",
+          "subtopic": "Playing Ball Games and Player Positions",
+          "previous": "Pupils' previous knowledge of the topic from home, earlier classes or everyday experience.",
+          "objectives": "1. Pupils should be able to explain playing the game of football, table tennis, volley ball, basket ball, hockey and hand ball by observing the rules.\n2. Pupils should be able to explain position the players in the games.",
+          "materials": "Textbook/curriculum material, board and marker/chalk, relevant pictures or real objects where available.",
+          "reference": "Supplied Basic Science & Technology Primary Six curriculum; teacher's approved textbook/reference material.",
+          "entry": "Teacher asks simple questions about playing the game of football, table tennis, volley ball, basket ball, hockey and hand ball by observing the rules and allows pupils to share what they already know.",
+          "content": "<p><b>Playing the game of football, table tennis, volley ball, basket ball, hockey and hand ball by observing the rules</b></p>\n<p><b>Position the players in the games</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "presentation": "<p><b>Step 1:</b> Introduce the topic and connect it with pupils' experience.</p><p><b>Step 2:</b> Explain the listed content using examples, pictures or demonstrations where appropriate.</p><p><b>Step 3:</b> Ask questions and allow pupils to identify, describe or demonstrate the concepts.</p><p><b>Step 4:</b> Summarise the key points and correct misconceptions.</p>",
+          "teacher": "<p>Introduces the lesson, explains the concepts, demonstrates or shows relevant examples, asks questions, supervises activities and gives corrections.</p>",
+          "pupils": "<p>Listen, observe, answer questions, participate in discussion/activity and write the important points.</p>",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "conclusion": "<p>Teacher revises the key points with the pupils and emphasises safe and correct application of the knowledge.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Playing Ball Games and Player Positions</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 7,
+          "period": 1,
+          "duration": "40 minutes",
+          "topic": "Uses of medicine",
+          "subtopic": "Identifying Fake Medicine and Normal Use of Medicine",
+          "previous": "Pupils' previous knowledge of the topic from home, earlier classes or everyday experience.",
+          "objectives": "1. Pupils should be able to explain features for identify fake medicine.\n2. Pupils should be able to explain normal use of medicine.",
+          "materials": "Textbook/curriculum material, board and marker/chalk, relevant pictures or real objects where available.",
+          "reference": "Supplied Basic Science & Technology Primary Six curriculum; teacher's approved textbook/reference material.",
+          "entry": "Teacher asks simple questions about features for identify fake medicine and allows pupils to share what they already know.",
+          "content": "<p><b>Features for identify fake medicine</b></p>\n<p><b>Normal use of medicine</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "presentation": "<p><b>Step 1:</b> Introduce the topic and connect it with pupils' experience.</p><p><b>Step 2:</b> Explain the listed content using examples, pictures or demonstrations where appropriate.</p><p><b>Step 3:</b> Ask questions and allow pupils to identify, describe or demonstrate the concepts.</p><p><b>Step 4:</b> Summarise the key points and correct misconceptions.</p>",
+          "teacher": "<p>Introduces the lesson, explains the concepts, demonstrates or shows relevant examples, asks questions, supervises activities and gives corrections.</p>",
+          "pupils": "<p>Listen, observe, answer questions, participate in discussion/activity and write the important points.</p>",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "conclusion": "<p>Teacher revises the key points with the pupils and emphasises safe and correct application of the knowledge.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Identifying Fake Medicine and Normal Use of Medicine</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 7,
+          "period": 2,
+          "duration": "40 minutes",
+          "topic": "Uses of medicine",
+          "subtopic": "Excessive Use of Medicine",
+          "previous": "Pupils' previous knowledge of the topic from home, earlier classes or everyday experience.",
+          "objectives": "1. Pupils should be able to explain excessive use of medicine.",
+          "materials": "Textbook/curriculum material, board and marker/chalk, relevant pictures or real objects where available.",
+          "reference": "Supplied Basic Science & Technology Primary Six curriculum; teacher's approved textbook/reference material.",
+          "entry": "Teacher asks simple questions about excessive use of medicine and allows pupils to share what they already know.",
+          "content": "<p><b>Excessive use of medicine</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "presentation": "<p><b>Step 1:</b> Introduce the topic and connect it with pupils' experience.</p><p><b>Step 2:</b> Explain the listed content using examples, pictures or demonstrations where appropriate.</p><p><b>Step 3:</b> Ask questions and allow pupils to identify, describe or demonstrate the concepts.</p><p><b>Step 4:</b> Summarise the key points and correct misconceptions.</p>",
+          "teacher": "<p>Introduces the lesson, explains the concepts, demonstrates or shows relevant examples, asks questions, supervises activities and gives corrections.</p>",
+          "pupils": "<p>Listen, observe, answer questions, participate in discussion/activity and write the important points.</p>",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "conclusion": "<p>Teacher revises the key points with the pupils and emphasises safe and correct application of the knowledge.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Excessive Use of Medicine</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 8,
+          "period": 1,
+          "duration": "40 minutes",
+          "topic": "Precaution in the use of computer",
+          "subtopic": "Power Supply and Care of the User",
+          "previous": "Pupils' previous knowledge of the topic from home, earlier classes or everyday experience.",
+          "objectives": "1. Pupils should be able to explain use un-interrupted power supply.\n2. Pupils should be able to explain care of the human ware eg. posture, positioning of the monitor.",
+          "materials": "Textbook/curriculum material, board and marker/chalk, relevant pictures or real objects where available.",
+          "reference": "Supplied Basic Science & Technology Primary Six curriculum; teacher's approved textbook/reference material.",
+          "entry": "Teacher asks simple questions about use un-interrupted power supply and allows pupils to share what they already know.",
+          "content": "<p><b>Use un-interrupted power supply</b></p>\n<p><b>Care of the human ware eg. posture, positioning of the monitor</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "presentation": "<p><b>Step 1:</b> Introduce the topic and connect it with pupils' experience.</p><p><b>Step 2:</b> Explain the listed content using examples, pictures or demonstrations where appropriate.</p><p><b>Step 3:</b> Ask questions and allow pupils to identify, describe or demonstrate the concepts.</p><p><b>Step 4:</b> Summarise the key points and correct misconceptions.</p>",
+          "teacher": "<p>Introduces the lesson, explains the concepts, demonstrates or shows relevant examples, asks questions, supervises activities and gives corrections.</p>",
+          "pupils": "<p>Listen, observe, answer questions, participate in discussion/activity and write the important points.</p>",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "conclusion": "<p>Teacher revises the key points with the pupils and emphasises safe and correct application of the knowledge.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Power Supply and Care of the User</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 8,
+          "period": 2,
+          "duration": "40 minutes",
+          "topic": "Precaution in the use of computer",
+          "subtopic": "Preventing Fatigue and Injuries",
+          "previous": "Pupils' previous knowledge of the topic from home, earlier classes or everyday experience.",
+          "objectives": "1. Pupils should be able to explain cure for the users – to fatigue and avoid injuries.",
+          "materials": "Textbook/curriculum material, board and marker/chalk, relevant pictures or real objects where available.",
+          "reference": "Supplied Basic Science & Technology Primary Six curriculum; teacher's approved textbook/reference material.",
+          "entry": "Teacher asks simple questions about cure for the users – to fatigue and avoid injuries and allows pupils to share what they already know.",
+          "content": "<p><b>Cure for the users – to fatigue and avoid injuries</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "presentation": "<p><b>Step 1:</b> Introduce the topic and connect it with pupils' experience.</p><p><b>Step 2:</b> Explain the listed content using examples, pictures or demonstrations where appropriate.</p><p><b>Step 3:</b> Ask questions and allow pupils to identify, describe or demonstrate the concepts.</p><p><b>Step 4:</b> Summarise the key points and correct misconceptions.</p>",
+          "teacher": "<p>Introduces the lesson, explains the concepts, demonstrates or shows relevant examples, asks questions, supervises activities and gives corrections.</p>",
+          "pupils": "<p>Listen, observe, answer questions, participate in discussion/activity and write the important points.</p>",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "conclusion": "<p>Teacher revises the key points with the pupils and emphasises safe and correct application of the knowledge.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Preventing Fatigue and Injuries</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 9,
+          "period": 1,
+          "duration": "40 minutes",
+          "topic": "Classification, uses common IT gadgets",
+          "subtopic": "Classification of Common IT Gadgets",
+          "previous": "Pupils' previous knowledge of the topic from home, earlier classes or everyday experience.",
+          "objectives": "1. Pupils should be able to explain classification of common it gadgets.\n2. Pupils should be able to explain computers, laptops, handheld computer, i pad, i tap.",
+          "materials": "Textbook/curriculum material, board and marker/chalk, relevant pictures or real objects where available.",
+          "reference": "Supplied Basic Science & Technology Primary Six curriculum; teacher's approved textbook/reference material.",
+          "entry": "Teacher asks simple questions about classification of common it gadgets and allows pupils to share what they already know.",
+          "content": "<p><b>Classification of common IT gadgets</b></p>\n<p><b>Computers, laptops, handheld computer, I pad, I tap</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "presentation": "<p><b>Step 1:</b> Introduce the topic and connect it with pupils' experience.</p><p><b>Step 2:</b> Explain the listed content using examples, pictures or demonstrations where appropriate.</p><p><b>Step 3:</b> Ask questions and allow pupils to identify, describe or demonstrate the concepts.</p><p><b>Step 4:</b> Summarise the key points and correct misconceptions.</p>",
+          "teacher": "<p>Introduces the lesson, explains the concepts, demonstrates or shows relevant examples, asks questions, supervises activities and gives corrections.</p>",
+          "pupils": "<p>Listen, observe, answer questions, participate in discussion/activity and write the important points.</p>",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "conclusion": "<p>Teacher revises the key points with the pupils and emphasises safe and correct application of the knowledge.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Classification of Common IT Gadgets</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 9,
+          "period": 2,
+          "duration": "40 minutes",
+          "topic": "Classification, uses common IT gadgets",
+          "subtopic": "Audio/Video IT Gadgets",
+          "previous": "Pupils' previous knowledge of the topic from home, earlier classes or everyday experience.",
+          "objectives": "1. Pupils should be able to explain audio/video gadgets, i-pad, home theater, mp3, mp4, digital camera.",
+          "materials": "Textbook/curriculum material, board and marker/chalk, relevant pictures or real objects where available.",
+          "reference": "Supplied Basic Science & Technology Primary Six curriculum; teacher's approved textbook/reference material.",
+          "entry": "Teacher asks simple questions about audio/video gadgets, i-pad, home theater, mp3, mp4, digital camera and allows pupils to share what they already know.",
+          "content": "<p><b>Audio/Video gadgets, I-Pad, Home Theater, MP3, MP4, digital camera</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "presentation": "<p><b>Step 1:</b> Introduce the topic and connect it with pupils' experience.</p><p><b>Step 2:</b> Explain the listed content using examples, pictures or demonstrations where appropriate.</p><p><b>Step 3:</b> Ask questions and allow pupils to identify, describe or demonstrate the concepts.</p><p><b>Step 4:</b> Summarise the key points and correct misconceptions.</p>",
+          "teacher": "<p>Introduces the lesson, explains the concepts, demonstrates or shows relevant examples, asks questions, supervises activities and gives corrections.</p>",
+          "pupils": "<p>Listen, observe, answer questions, participate in discussion/activity and write the important points.</p>",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "conclusion": "<p>Teacher revises the key points with the pupils and emphasises safe and correct application of the knowledge.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Audio/Video IT Gadgets</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 10,
+          "period": 1,
+          "duration": "40 minutes",
+          "topic": "Classification, uses common IT gadgets",
+          "subtopic": "Storage Devices and Smart/Portable Devices",
+          "previous": "Pupils' previous knowledge of the topic from home, earlier classes or everyday experience.",
+          "objectives": "1. Pupils should be able to explain storage devices – flash memory card, external hard drive.\n2. Pupils should be able to explain smart phone, blackberry, android phones i-pad.",
+          "materials": "Textbook/curriculum material, board and marker/chalk, relevant pictures or real objects where available.",
+          "reference": "Supplied Basic Science & Technology Primary Six curriculum; teacher's approved textbook/reference material.",
+          "entry": "Teacher asks simple questions about storage devices – flash memory card, external hard drive and allows pupils to share what they already know.",
+          "content": "<p><b>Storage devices – flash memory card, external hard drive</b></p>\n<p><b>Smart phone, blackberry, android phones I-pad</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "presentation": "<p><b>Step 1:</b> Introduce the topic and connect it with pupils' experience.</p><p><b>Step 2:</b> Explain the listed content using examples, pictures or demonstrations where appropriate.</p><p><b>Step 3:</b> Ask questions and allow pupils to identify, describe or demonstrate the concepts.</p><p><b>Step 4:</b> Summarise the key points and correct misconceptions.</p>",
+          "teacher": "<p>Introduces the lesson, explains the concepts, demonstrates or shows relevant examples, asks questions, supervises activities and gives corrections.</p>",
+          "pupils": "<p>Listen, observe, answer questions, participate in discussion/activity and write the important points.</p>",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "conclusion": "<p>Teacher revises the key points with the pupils and emphasises safe and correct application of the knowledge.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Storage Devices and Smart/Portable Devices</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 10,
+          "period": 2,
+          "duration": "40 minutes",
+          "topic": "Classification, uses common IT gadgets",
+          "subtopic": "Uses of Some IT Gadgets",
+          "previous": "Pupils' previous knowledge of the topic from home, earlier classes or everyday experience.",
+          "objectives": "1. Pupils should be able to explain uses of some it gadgets.\n2. Pupils should be able to explain word processing.\n3. Pupils should be able to explain telephone conversation.",
+          "materials": "Textbook/curriculum material, board and marker/chalk, relevant pictures or real objects where available.",
+          "reference": "Supplied Basic Science & Technology Primary Six curriculum; teacher's approved textbook/reference material.",
+          "entry": "Teacher asks simple questions about uses of some it gadgets and allows pupils to share what they already know.",
+          "content": "<p><b>Uses of some IT gadgets</b></p>\n<p><b>Word Processing</b></p>\n<p><b>Telephone Conversation</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "presentation": "<p><b>Step 1:</b> Introduce the topic and connect it with pupils' experience.</p><p><b>Step 2:</b> Explain the listed content using examples, pictures or demonstrations where appropriate.</p><p><b>Step 3:</b> Ask questions and allow pupils to identify, describe or demonstrate the concepts.</p><p><b>Step 4:</b> Summarise the key points and correct misconceptions.</p>",
+          "teacher": "<p>Introduces the lesson, explains the concepts, demonstrates or shows relevant examples, asks questions, supervises activities and gives corrections.</p>",
+          "pupils": "<p>Listen, observe, answer questions, participate in discussion/activity and write the important points.</p>",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "conclusion": "<p>Teacher revises the key points with the pupils and emphasises safe and correct application of the knowledge.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Uses of Some IT Gadgets</b>. Include the main points taught in class.</p>"
+        }
+      ],
+      "lessonNotes": [
+        {
+          "week": 1,
+          "period": 1,
+          "topic": "The Solar System",
+          "subtopic": "Our Solar System and The Planets",
+          "introduction": "This lesson covers Our Solar System and The Planets.",
+          "content": "<p><b>Our Solar System</b></p>\n<p><b>The Planets</b></p><p>The Solar System is made up of the Sun and the objects that move around it. The Sun is a star and is the main source of light and heat for Earth.</p>\n<p>The planets move around the Sun in their orbits. The planets are Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus and Neptune.</p>",
+          "keyPoints": [
+            "Our Solar System",
+            "The Planets"
+          ],
+          "summary": "Pupils should understand the main ideas under Our Solar System and The Planets and be able to state the key points in their own words.",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Our Solar System and The Planets</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 1,
+          "period": 2,
+          "topic": "The Solar System",
+          "subtopic": "Gravity and Weightlessness",
+          "introduction": "This lesson covers Gravity and Weightlessness.",
+          "content": "<p><b>Gravity and weightlessness</b></p><p>The Solar System is made up of the Sun and the objects that move around it. The Sun is a star and is the main source of light and heat for Earth.</p>\n<p>The planets move around the Sun in their orbits. The planets are Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus and Neptune.</p>",
+          "keyPoints": [
+            "Gravity and weightlessness"
+          ],
+          "summary": "Pupils should understand the main ideas under Gravity and Weightlessness and be able to state the key points in their own words.",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Gravity and Weightlessness</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 2,
+          "period": 1,
+          "topic": "The Human Body System – Blood Circulation",
+          "subtopic": "The Human Heart Structure and its Function",
+          "introduction": "This lesson covers The Human Heart Structure and its Function.",
+          "content": "<p><b>The Human Heart Structure</b></p>\n<p><b>Its function</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "keyPoints": [
+            "The Human Heart Structure",
+            "Its function"
+          ],
+          "summary": "Pupils should understand the main ideas under The Human Heart Structure and its Function and be able to state the key points in their own words.",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>The Human Heart Structure and its Function</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 2,
+          "period": 2,
+          "topic": "The Human Body System – Blood Circulation",
+          "subtopic": "Blood Vessels and Blood Circulation",
+          "introduction": "This lesson covers Blood Vessels and Blood Circulation.",
+          "content": "<p><b>Blood vessels – arteries, and capillaries</b></p>\n<p><b>Blood circulation</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "keyPoints": [
+            "Blood vessels – arteries, and capillaries",
+            "Blood circulation"
+          ],
+          "summary": "Pupils should understand the main ideas under Blood Vessels and Blood Circulation and be able to state the key points in their own words.",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Blood Vessels and Blood Circulation</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 3,
+          "period": 1,
+          "topic": "Minerals Resources",
+          "subtopic": "Mineral Resources — Content 1 and Physical Characteristics",
+          "introduction": "This lesson covers Mineral Resources — Content 1 and Physical Characteristics.",
+          "content": "<p><b>Content 1 — not legible in the supplied photograph</b> — This item is retained exactly as indicated in the supplied curriculum image. No missing content has been invented.</p>\n<p><b>Physical characteristics of the major minerals resources</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "keyPoints": [
+            "Content 1 — not legible in the supplied photograph",
+            "Physical characteristics of the major minerals resources"
+          ],
+          "summary": "Pupils should understand the main ideas under Mineral Resources — Content 1 and Physical Characteristics and be able to state the key points in their own words.",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Mineral Resources — Content 1 and Physical Characteristics</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 3,
+          "period": 2,
+          "topic": "Minerals Resources",
+          "subtopic": "Importance of Mineral Resources",
+          "introduction": "This lesson covers Importance of Mineral Resources.",
+          "content": "<p><b>Importance of mineral resources in industries</b></p>\n<p><b>Transport/communication</b></p>\n<p><b>The Economy</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "keyPoints": [
+            "Importance of mineral resources in industries",
+            "Transport/communication",
+            "The Economy"
+          ],
+          "summary": "Pupils should understand the main ideas under Importance of Mineral Resources and be able to state the key points in their own words.",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Importance of Mineral Resources</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 4,
+          "period": 1,
+          "topic": "Introduction to wood work (Hand tools)",
+          "subtopic": "Hand Tools and Measuring Tools",
+          "introduction": "This lesson covers Hand Tools and Measuring Tools.",
+          "content": "<p><b>Hand tools</b></p>\n<p><b>Measuring tools, tape rule, steel rule</b></p><p>Woodwork uses different hand tools for measuring, marking, cutting and shaping wood. Measuring tools include the tape rule and steel rule.</p>\n<p>Tools should be handled carefully, kept clean and stored properly after use.</p>",
+          "keyPoints": [
+            "Hand tools",
+            "Measuring tools, tape rule, steel rule"
+          ],
+          "summary": "Pupils should understand the main ideas under Hand Tools and Measuring Tools and be able to state the key points in their own words.",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Hand Tools and Measuring Tools</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 4,
+          "period": 2,
+          "topic": "Introduction to wood work (Hand tools)",
+          "subtopic": "Marking Tools and Cutting Tools",
+          "introduction": "This lesson covers Marking Tools and Cutting Tools.",
+          "content": "<p><b>Marking tools – scriber, gauges, and centre punch</b></p>\n<p><b>Cutting tools saw and knives</b></p><p>Woodwork uses different hand tools for measuring, marking, cutting and shaping wood. Measuring tools include the tape rule and steel rule.</p>\n<p>Tools should be handled carefully, kept clean and stored properly after use.</p>",
+          "keyPoints": [
+            "Marking tools – scriber, gauges, and centre punch",
+            "Cutting tools saw and knives"
+          ],
+          "summary": "Pupils should understand the main ideas under Marking Tools and Cutting Tools and be able to state the key points in their own words.",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Marking Tools and Cutting Tools</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 5,
+          "period": 1,
+          "topic": "Inclined planes",
+          "subtopic": "Examples of Inclined Plane",
+          "introduction": "This lesson covers Examples of Inclined Plane.",
+          "content": "<p><b>Examples of inclined plane</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "keyPoints": [
+            "Examples of inclined plane"
+          ],
+          "summary": "Pupils should understand the main ideas under Examples of Inclined Plane and be able to state the key points in their own words.",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Examples of Inclined Plane</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 5,
+          "period": 2,
+          "topic": "Inclined planes",
+          "subtopic": "Advantages of Inclined Plane",
+          "introduction": "This lesson covers Advantages of Inclined Plane.",
+          "content": "<p><b>Advantages of inclined plane</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "keyPoints": [
+            "Advantages of inclined plane"
+          ],
+          "summary": "Pupils should understand the main ideas under Advantages of Inclined Plane and be able to state the key points in their own words.",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Advantages of Inclined Plane</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 6,
+          "period": 1,
+          "topic": "Ball Games",
+          "subtopic": "Rules and Regulations of Ball Games",
+          "introduction": "This lesson covers Rules and Regulations of Ball Games.",
+          "content": "<p><b>Rules and regulation of ball games</b></p>\n<p><b>Football, table tennis, volley ball, basket ball, hockey and hand ball</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "keyPoints": [
+            "Rules and regulation of ball games",
+            "Football, table tennis, volley ball, basket ball, hockey and hand ball"
+          ],
+          "summary": "Pupils should understand the main ideas under Rules and Regulations of Ball Games and be able to state the key points in their own words.",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Rules and Regulations of Ball Games</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 6,
+          "period": 2,
+          "topic": "Ball Games",
+          "subtopic": "Key Officials of Ball Games",
+          "introduction": "This lesson covers Key Officials of Ball Games.",
+          "content": "<p><b>The key officials of football, table tennis, volley ball, basket ball, hockey and hand ball</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "keyPoints": [
+            "The key officials of football, table tennis, volley ball, basket ball, hockey and hand ball"
+          ],
+          "summary": "Pupils should understand the main ideas under Key Officials of Ball Games and be able to state the key points in their own words.",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Key Officials of Ball Games</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 6,
+          "period": 3,
+          "topic": "Ball Games",
+          "subtopic": "Playing Ball Games and Player Positions",
+          "introduction": "This lesson covers Playing Ball Games and Player Positions.",
+          "content": "<p><b>Playing the game of football, table tennis, volley ball, basket ball, hockey and hand ball by observing the rules</b></p>\n<p><b>Position the players in the games</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "keyPoints": [
+            "Playing the game of football, table tennis, volley ball, basket ball, hockey and hand ball by observing the rules",
+            "Position the players in the games"
+          ],
+          "summary": "Pupils should understand the main ideas under Playing Ball Games and Player Positions and be able to state the key points in their own words.",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Playing Ball Games and Player Positions</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 7,
+          "period": 1,
+          "topic": "Uses of medicine",
+          "subtopic": "Identifying Fake Medicine and Normal Use of Medicine",
+          "introduction": "This lesson covers Identifying Fake Medicine and Normal Use of Medicine.",
+          "content": "<p><b>Features for identify fake medicine</b></p>\n<p><b>Normal use of medicine</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "keyPoints": [
+            "Features for identify fake medicine",
+            "Normal use of medicine"
+          ],
+          "summary": "Pupils should understand the main ideas under Identifying Fake Medicine and Normal Use of Medicine and be able to state the key points in their own words.",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Identifying Fake Medicine and Normal Use of Medicine</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 7,
+          "period": 2,
+          "topic": "Uses of medicine",
+          "subtopic": "Excessive Use of Medicine",
+          "introduction": "This lesson covers Excessive Use of Medicine.",
+          "content": "<p><b>Excessive use of medicine</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "keyPoints": [
+            "Excessive use of medicine"
+          ],
+          "summary": "Pupils should understand the main ideas under Excessive Use of Medicine and be able to state the key points in their own words.",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Excessive Use of Medicine</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 8,
+          "period": 1,
+          "topic": "Precaution in the use of computer",
+          "subtopic": "Power Supply and Care of the User",
+          "introduction": "This lesson covers Power Supply and Care of the User.",
+          "content": "<p><b>Use un-interrupted power supply</b></p>\n<p><b>Care of the human ware eg. posture, positioning of the monitor</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "keyPoints": [
+            "Use un-interrupted power supply",
+            "Care of the human ware eg. posture, positioning of the monitor"
+          ],
+          "summary": "Pupils should understand the main ideas under Power Supply and Care of the User and be able to state the key points in their own words.",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Power Supply and Care of the User</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 8,
+          "period": 2,
+          "topic": "Precaution in the use of computer",
+          "subtopic": "Preventing Fatigue and Injuries",
+          "introduction": "This lesson covers Preventing Fatigue and Injuries.",
+          "content": "<p><b>Cure for the users – to fatigue and avoid injuries</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "keyPoints": [
+            "Cure for the users – to fatigue and avoid injuries"
+          ],
+          "summary": "Pupils should understand the main ideas under Preventing Fatigue and Injuries and be able to state the key points in their own words.",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Preventing Fatigue and Injuries</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 9,
+          "period": 1,
+          "topic": "Classification, uses common IT gadgets",
+          "subtopic": "Classification of Common IT Gadgets",
+          "introduction": "This lesson covers Classification of Common IT Gadgets.",
+          "content": "<p><b>Classification of common IT gadgets</b></p>\n<p><b>Computers, laptops, handheld computer, I pad, I tap</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "keyPoints": [
+            "Classification of common IT gadgets",
+            "Computers, laptops, handheld computer, I pad, I tap"
+          ],
+          "summary": "Pupils should understand the main ideas under Classification of Common IT Gadgets and be able to state the key points in their own words.",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Classification of Common IT Gadgets</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 9,
+          "period": 2,
+          "topic": "Classification, uses common IT gadgets",
+          "subtopic": "Audio/Video IT Gadgets",
+          "introduction": "This lesson covers Audio/Video IT Gadgets.",
+          "content": "<p><b>Audio/Video gadgets, I-Pad, Home Theater, MP3, MP4, digital camera</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "keyPoints": [
+            "Audio/Video gadgets, I-Pad, Home Theater, MP3, MP4, digital camera"
+          ],
+          "summary": "Pupils should understand the main ideas under Audio/Video IT Gadgets and be able to state the key points in their own words.",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Audio/Video IT Gadgets</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 10,
+          "period": 1,
+          "topic": "Classification, uses common IT gadgets",
+          "subtopic": "Storage Devices and Smart/Portable Devices",
+          "introduction": "This lesson covers Storage Devices and Smart/Portable Devices.",
+          "content": "<p><b>Storage devices – flash memory card, external hard drive</b></p>\n<p><b>Smart phone, blackberry, android phones I-pad</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "keyPoints": [
+            "Storage devices – flash memory card, external hard drive",
+            "Smart phone, blackberry, android phones I-pad"
+          ],
+          "summary": "Pupils should understand the main ideas under Storage Devices and Smart/Portable Devices and be able to state the key points in their own words.",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Storage Devices and Smart/Portable Devices</b>. Include the main points taught in class.</p>"
+        },
+        {
+          "week": 10,
+          "period": 2,
+          "topic": "Classification, uses common IT gadgets",
+          "subtopic": "Uses of Some IT Gadgets",
+          "introduction": "This lesson covers Uses of Some IT Gadgets.",
+          "content": "<p><b>Uses of some IT gadgets</b></p>\n<p><b>Word Processing</b></p>\n<p><b>Telephone Conversation</b></p><p>The lesson follows the supplied curriculum content and introduces the listed concepts at Primary 6 level.</p>",
+          "keyPoints": [
+            "Uses of some IT gadgets",
+            "Word Processing",
+            "Telephone Conversation"
+          ],
+          "summary": "Pupils should understand the main ideas under Uses of Some IT Gadgets and be able to state the key points in their own words.",
+          "evaluation": "<p>1. What did you learn in this lesson?<br>2. Mention or explain the main points taught.<br>3. Give one example where applicable.</p>",
+          "assignment": "<p>Write short answers on the lesson topic: <b>Uses of Some IT Gadgets</b>. Include the main points taught in class.</p>"
+        }
+      ],
+      "sourceNote": "Curriculum topics and contents are taken from the supplied curriculum photographs. The unreadable Mineral Resources Content 1 is deliberately not invented. Lesson Plans and Lesson Notes for each Primary 6 period are stored in this same core curriculum source."
     }
   ]
 }
-</script>
-</body>
-</html>
+</script><script>const DATA=JSON.parse(document.getElementById('curriculum-data').textContent);function render(){const cls=document.getElementById('viewClass').value;const root=document.getElementById('preview');const recs=DATA.records.filter(r=>!cls||r.className===cls);root.innerHTML=recs.map(r=>`<section class="class-section"><div class="section-head"><div><span class="badge">${r.className}</span><h1>${r.subject}</h1><p>${r.term} Curriculum</p></div><div class="summary"><b>${r.curriculum.length}</b><small>weekly contents</small></div></div>${r.curriculum.map((w,i)=>`<section class="week"><div class="week-title"><span>WEEK ${i+1}</span><h2>${w.topic}</h2><em>${w.periods.length} period(s)</em></div>${w.periods.map(p=>`<div class="period"><div class="period-head"><span>${p.periodLabel}</span><b>${p.title}</b></div><ul>${p.subcontents.map(s=>`<li>${s}</li>`).join('')}</ul></div>`).join('')}</section>`).join('')}</section>`).join('')||'<div class="note">No curriculum added for this selection yet.</div>';}document.getElementById('viewClass').addEventListener('change',render);render();</script></body></html>
