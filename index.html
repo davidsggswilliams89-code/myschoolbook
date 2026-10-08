@@ -1516,9 +1516,9 @@ html.teacher-auth-pending #firebaseAuthGate{display:none !important;}
     </div>
     <form id="addStudentForm" class="student-form-grid">
       <div class="field"><label>STUDENT NAME *</label><input id="newStudentName" type="text" placeholder="Full student name" required></div>
-      <div class="field"><label>ADMISSION NUMBER *</label><input id="newStudentAdmission" type="text" placeholder="e.g. P5/009" required></div>
+      <div class="field"><label>ADMISSION NUMBER *</label><input id="newStudentAdmission" type="text" placeholder="e.g. P1/001 or P5/009" required></div>
       <div class="field"><label>GENDER *</label><select id="newStudentGender" required><option value="">Select gender</option><option>Male</option><option>Female</option></select></div>
-      <div class="field"><label>CLASS *</label><select id="newStudentClass" required><option value="Primary 5">Primary 5</option><option value="Primary 4">Primary 4</option></select></div>
+      <div class="field"><label>CLASS *</label><select id="newStudentClass" required><option value="">Select class</option><option value="Primary 1">Primary 1</option><option value="Primary 2">Primary 2</option><option value="Primary 3">Primary 3</option><option value="Primary 4">Primary 4</option><option value="Primary 5">Primary 5</option><option value="Primary 6">Primary 6</option></select></div>
       <div class="field"><label>DATE OF BIRTH</label><input id="newStudentDob" type="date"></div>
       <div class="field"><label>PARENT PHONE NUMBER</label><input id="newStudentPhone" type="tel" placeholder="Parent phone number"></div>
       <div class="field"><label>PARENT / GUARDIAN</label><input id="newStudentGuardian" type="text" placeholder="Parent or guardian name"></div>
@@ -2149,7 +2149,7 @@ function studentFirestorePayload(s){
    address:info.address||"",
    photo:info.photo||"",
    teacherUid:window.firebaseTeacherUID||"",
-   updatedAt:serverTimestamp()
+   updatedAt:window.firebaseFirestoreFns.serverTimestamp()
  };
 }
 async function saveStudentToFirestore(s){
@@ -2157,10 +2157,10 @@ async function saveStudentToFirestore(s){
  if(!db||!uid) throw new Error("Teacher Firebase account is not ready.");
  const id=studentFirestoreId(s);
  if(id){
-   await setDoc(doc(db,"teachers",uid,"students",id),studentFirestorePayload(s),{merge:true});
+   await window.firebaseFirestoreFns.setDoc(window.firebaseFirestoreFns.doc(db,"teachers",uid,"students",id),studentFirestorePayload(s),{merge:true});
    return id;
  }
- const ref=await addDoc(collection(db,"teachers",uid,"students"),{...studentFirestorePayload(s),createdAt:serverTimestamp()});
+ const ref=await window.firebaseFirestoreFns.addDoc(window.firebaseFirestoreFns.collection(db,"teachers",uid,"students"),{...studentFirestorePayload(s),createdAt:window.firebaseFirestoreFns.serverTimestamp()});
  if(!s[8])s[8]={};
  s[8].firestoreId=ref.id;
  return ref.id;
@@ -2174,7 +2174,7 @@ window.loadStudentsFromFirestore=async function(){
  const db=window.teacherFirestore,uid=window.firebaseTeacherUID;
  if(!db||!uid)return;
  try{
-   const snap=await getDocs(collection(db,"teachers",uid,"students"));
+   const snap=await window.firebaseFirestoreFns.getDocs(window.firebaseFirestoreFns.collection(db,"teachers",uid,"students"));
    if(snap.empty){
      try{
        const cached=JSON.parse(localStorage.getItem(studentStorageKey())||"null");
@@ -3040,6 +3040,7 @@ window.addStudentFromForm=async function(){
    saveStudentsToLocal();
    document.getElementById("addStudentForm").reset();
    document.getElementById("newStudentClass").value=selectedDashboardClass();
+   if(!document.getElementById("newStudentClass").value) document.getElementById("newStudentClass").value="Primary 5";
    var preview=document.getElementById("studentPhotoPreview");
    if(preview)preview.innerHTML="<span>PHOTO</span>";
    refreshStudentViews();
@@ -3195,7 +3196,7 @@ window.viewStudentResult=function(index){
   let attendanceSelectedClass="";
 
   function allStudentClasses(){
-    const set=new Set(["Primary 4","Primary 5"]);
+    const set=new Set(["Primary 1","Primary 2","Primary 3","Primary 4","Primary 5","Primary 6"]);
     students.forEach(function(s){
       const info=studentInfo(s);
       if(info.className)set.add(info.className);
@@ -3682,6 +3683,10 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
+  // Expose the Firestore functions needed by the existing student-management code.
+  // The student-management code lives in a normal script, while Firebase uses an ES module.
+  // Without this bridge, functions such as addDoc are not in that script's scope.
+  window.firebaseFirestoreFns = { collection, doc, getDoc, getDocs, addDoc, setDoc, serverTimestamp };
   // Keep the teacher signed in across page refreshes and browser restarts.
   try { await setPersistence(auth, browserLocalPersistence); } catch(err) { console.error("Firebase auth persistence setup failed:", err); }
   window.firebaseApp = app;
