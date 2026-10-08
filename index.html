@@ -1216,6 +1216,10 @@ table{max-width:100%}
 </style>
 
 <style id="firebase-auth-ui-style">
+/* Prevent refresh flicker while Firebase restores an already-signed-in teacher session. */
+html.teacher-auth-pending .topnav-header,
+html.teacher-auth-pending .main{visibility:hidden !important;}
+html.teacher-auth-pending #firebaseAuthGate{display:none !important;}
 #firebaseAuthGate{position:fixed;inset:0;z-index:10000;background:linear-gradient(135deg,#eef8f5,#f4f7fb);display:flex;align-items:center;justify-content:center;padding:18px;overflow:auto;visibility:visible}
 #firebaseAuthGate.auth-ready{visibility:visible}
 #firebaseAuthGate.auth-hidden{display:none}
@@ -1230,6 +1234,15 @@ table{max-width:100%}
 
 </head>
 <body>
+<script>
+  /* Mark an existing Firebase session as pending before the dashboard paints.
+     This prevents the login overlay/dashboard from flashing during refresh. */
+  try{
+    if(localStorage.getItem('firebaseTeacherUID')){
+      document.documentElement.classList.add('teacher-auth-pending');
+    }
+  }catch(_e){}
+</script>
 <div id="firebaseAuthGate">
   <div class="auth-card">
     <div class="auth-brand">
@@ -1865,9 +1878,20 @@ table{max-width:100%}
 </div>
 
 <script>
-function setTopNav(el){
-  document.querySelectorAll(".topnav-item").forEach(x=>x.classList.remove("active"));
-  el.classList.add("active");
+function setTopNav(el,id){
+  const items=document.querySelectorAll(".topnav-item");
+  items.forEach(x=>x.classList.remove("active"));
+  if(el){
+    el.classList.add("active");
+    return;
+  }
+  if(id){
+    const needle="showSection('"+id+"'";
+    items.forEach(x=>{
+      const onclick=x.getAttribute("onclick")||"";
+      if(onclick.indexOf(needle)!==-1) x.classList.add("active");
+    });
+  }
 }
 function openTeachingAssignment(){
   loadTeachingAssignments();
@@ -1953,9 +1977,9 @@ function showSection(id,el){
   const target=document.getElementById(id);
   if(target) target.style.display="block";
   try{ sessionStorage.setItem("teacherActiveSection",id); }catch(e){}
-  setTopNav(el);
+  setTopNav(el,id);
   closeMoreMenu();
-  window.scrollTo({top:0,behavior:"smooth"});
+  window.scrollTo({top:0,behavior:window.__restoringTeacherSection ? "auto" : "smooth"});
 }
 function toggleMoreMenu(el){
   setTopNav(el);
@@ -3595,6 +3619,8 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
   window.firebaseTeacherLogout=async function(){
     try{
       try{sessionStorage.removeItem('teacherActiveSection');}catch(_e){}
+      try{localStorage.removeItem('firebaseTeacherUID');localStorage.removeItem('firebaseTeacherDisplayName');}catch(_e){}
+      document.documentElement.classList.remove('teacher-auth-pending');
       gate?.classList.remove('auth-hidden');
       gate?.classList.add('auth-ready');
       if(loginForm){loginForm.style.display='block';}
@@ -3669,6 +3695,7 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
   let authInitialized=false;
   onAuthStateChanged(auth,async user=>{
     if(user){
+      document.documentElement.classList.add('teacher-auth-pending');
       window.firebaseTeacherUID=user.uid;
       window.firebaseTeacherUser=user;
       localStorage.setItem('firebaseTeacherUID',user.uid);
@@ -3686,11 +3713,16 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
       try{ activeSection=sessionStorage.getItem('teacherActiveSection') || 'dashboardView'; }catch(_e){}
       const validSections=['dashboardView','lessonsView','caExamView','studentsView','attendanceView','profileView','assignmentView','myClassesView','myTimetableView','examTimetableView','academicSessionView','settingsView','subscriptionView','holidayView'];
       if(!validSections.includes(activeSection)) activeSection='dashboardView';
+      window.__restoringTeacherSection=true;
       if(typeof window.showSection==='function') window.showSection(activeSection,null);
       if(activeSection==='profileView' && typeof window.loadTeacherProfile==='function') window.loadTeacherProfile();
+      window.__restoringTeacherSection=false;
+      document.documentElement.classList.remove('teacher-auth-pending');
     }else{
       window.firebaseTeacherUID=null;
       window.firebaseTeacherUser=null;
+      try{localStorage.removeItem('firebaseTeacherUID');localStorage.removeItem('firebaseTeacherDisplayName');}catch(_e){}
+      document.documentElement.classList.remove('teacher-auth-pending');
       if(authInitialized){ try{sessionStorage.removeItem('teacherActiveSection');}catch(_e){} }
       gate?.classList.remove('auth-hidden');
       gate?.classList.add('auth-ready');
