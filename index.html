@@ -1508,14 +1508,14 @@ html.teacher-auth-pending #firebaseAuthGate{display:none !important;}
 
     <div class="library-filter">
       <label>CLASS</label>
-      <select id="lessonLibraryClass" onchange="refreshCurriculumFromSource()">
+      <select id="lessonLibraryClass" onchange="updateLessonLibrary()">
         <option>Primary 1</option><option>Primary 2</option><option>Primary 3</option><option>Primary 4</option><option selected>Primary 5</option><option>Primary 6</option>
       </select>
     </div>
 
     <div class="library-filter">
       <label>TERM</label>
-      <select id="lessonLibraryTerm" onchange="refreshCurriculumFromSource()">
+      <select id="lessonLibraryTerm" onchange="updateLessonLibrary()">
         <option selected>First Term</option><option>Second Term</option><option>Third Term</option>
       </select>
     </div>
@@ -2964,70 +2964,72 @@ function saveResults(){
 
 function printCurrentLesson(){
   if(!currentLessonType) return;
-  const c=curriculum[selectedLesson.topicIndex ?? currentLessonIndex ?? 0] || curriculum[0];
   const type=currentLessonType;
-  const data=getActiveLessonData();
-  const subtopic=selectedLesson.subtopic;
-
-  if(type==="Lesson Note"){
-    const content=`
-      <h1 class="print-title">PRIMARY 5 — BASIC SCIENCE & TECHNOLOGY</h1>
-      <h2 style="text-align:center">LESSON NOTE</h2>
-      <div class="print-meta">
-        <div><b>School:</b> ${teacherSchoolName()}</div>
-        <div><b>Teacher:</b> ${teacherFullName()}</div>
-        <div><b>Class:</b> Primary 5</div>
-        <div><b>Subject:</b> Basic Science & Technology</div>
-        <div><b>Term:</b> First Term</div>
-        <div><b>Week:</b> Week 1</div>
-        <div><b>Period:</b> Period 1</div>
-        <div><b>Date:</b> ${new Date().toLocaleDateString()}</div>
-        <div><b>Topic:</b> ${c.topic}</div>
-        <div><b>Sub-topic:</b> ${subtopic}</div>
-        <div><b>Duration:</b> 40 minutes</div>
-      </div>
-      <h2>Previous Knowledge</h2><p>${data.previous}</p>
-      <h2>Behavioural Objectives</h2><p>${data.objectives}</p>
-      <h2>Instructional Materials</h2><p>${data.materials}</p>
-      <h2>Reference Materials</h2><p>${data.reference}</p>
-      <h2>Entry Behaviour</h2><p>${data.entry}</p>
-      <h2>Detailed Lesson Content</h2><div>${data.content}</div>
-      <h2>Lesson Development / Presentation</h2><p>${data.presentation}</p>
-      <h2>Teacher's Activities</h2><p>${data.teacher}</p>
-      <h2>Pupils' Activities</h2><p>${data.pupils}</p>
-      <h2>Evaluation</h2><p>${data.evaluation}</p>
-      <h2>Conclusion</h2><p>${data.conclusion}</p>
-      <h2>Assignment</h2><p>${data.assignment}</p>`;
-    printDocument(content);
-    return;
-  }
-
-  const content=`
-    <h1 class="print-title">PRIMARY 5 — BASIC SCIENCE & TECHNOLOGY</h1>
-    <h2 style="text-align:center">LESSON PLAN</h2>
+  // Always print the same class/subject/term/period data currently shown in the lesson popup.
+  const selectedClass=document.getElementById('lessonLibraryClass')?.value || 'Primary 5';
+  const selectedSubject=document.getElementById('lessonLibrarySubject')?.value || 'Basic Science & Technology';
+  const selectedTerm=document.getElementById('lessonLibraryTerm')?.value || 'First Term';
+  const weekNumber=(Number(selectedLesson.topicIndex)||0)+1;
+  const periodNumber=(Number(selectedLesson.periodIndex)||0)+1;
+  const topic=selectedLesson.topic || '';
+  const subtopic=selectedLesson.subtopic || '';
+  const data=getActiveLessonData(type);
+  const printDate=new Date().toLocaleDateString();
+  const meta=`
     <div class="print-meta">
       <div><b>School:</b> ${teacherSchoolName()}</div>
       <div><b>Teacher:</b> ${teacherFullName()}</div>
-      <div><b>Class:</b> Primary 5</div>
-      <div><b>Subject:</b> Basic Science & Technology</div>
-      <div><b>Term:</b> First Term</div>
-      <div><b>Week:</b> Week 1</div>
-      <div><b>Topic:</b> ${c.topic}</div>
-      <div><b>Sub-topic:</b> ${subtopic}</div>
-      <div><b>Date:</b> ${new Date().toLocaleDateString()}</div>
+      <div><b>Class:</b> ${selectedClass}</div>
+      <div><b>Subject:</b> ${selectedSubject}</div>
+      <div><b>Term:</b> ${selectedTerm}</div>
+      <div><b>Week:</b> Week ${weekNumber}</div>
+      <div><b>Period:</b> Period ${periodNumber}</div>
+      <div><b>Date:</b> ${printDate}</div>
+      <div><b>Topic:</b> ${topic}</div>
+      <div><b>Lesson:</b> ${subtopic}</div>
       <div><b>Duration:</b> 40 minutes</div>
-    </div>
-    <h2>Objectives</h2><p>${data.objectives}</p>
-    <h2>Previous Knowledge</h2><p>${data.previous}</p>
-    <h2>Teaching / Learning Materials</h2><p>${data.materials}</p>
-    <h2>Teaching Method</h2><p>${data.method}</p>
-    <h2>Lesson Steps / Activities</h2><p>${data.presentation}</p>
-    <h2>Teacher Activities</h2><p>${data.teacher}</p>
-    <h2>Pupil Activities</h2><p>${data.pupils}</p>
-    <h2>Evaluation</h2><p>${data.evaluation}</p>
-    <h2>Conclusion</h2><p>${data.conclusion}</p>
-    <h2>Assignment</h2><p>${data.assignment}</p>`;
-  printDocument(content);
+    </div>`;
+
+  if(type==="Lesson Note"){
+    // Curriculum lesson notes use their own schema (introduction/content/keyPoints/summary),
+    // so print those fields directly rather than the old lesson-plan-shaped record.
+    const keyPoints=Array.isArray(data.keyPoints) && data.keyPoints.length
+      ? `<ul>${data.keyPoints.map(point=>`<li>${point}</li>`).join('')}</ul>`
+      : '';
+    const introduction=data.introduction || data.previous || '';
+    const content=data.content || '';
+    const summary=data.summary || data.conclusion || '';
+    const evaluation=data.evaluation || '';
+    const assignment=data.assignment || '';
+    const html=`
+      <h1 class="print-title">${selectedClass.toUpperCase()} — ${selectedSubject.toUpperCase()}</h1>
+      <h2 style="text-align:center">LESSON NOTE</h2>
+      ${meta}
+      ${introduction ? `<h2>Introduction / Previous Knowledge</h2><div>${introduction}</div>` : ''}
+      <h2>Detailed Lesson Note</h2><div class="lesson-print-content">${content}</div>
+      ${keyPoints ? `<h2>Key Points</h2>${keyPoints}` : ''}
+      ${summary ? `<h2>Summary</h2><div>${summary}</div>` : ''}
+      ${evaluation ? `<h2>Evaluation Questions</h2><div>${evaluation}</div>` : ''}
+      ${assignment ? `<h2>Assignment</h2><div>${assignment}</div>` : ''}`;
+    printDocument(html);
+    return;
+  }
+
+  const html=`
+    <h1 class="print-title">${selectedClass.toUpperCase()} — ${selectedSubject.toUpperCase()}</h1>
+    <h2 style="text-align:center">LESSON PLAN</h2>
+    ${meta}
+    <h2>Objectives</h2><div>${data.objectives||''}</div>
+    <h2>Previous Knowledge</h2><div>${data.previous||''}</div>
+    <h2>Teaching / Learning Materials</h2><div>${data.materials||''}</div>
+    <h2>Teaching Method</h2><div>${data.method||''}</div>
+    <h2>Lesson Steps / Activities</h2><div>${data.presentation||data.presentationNote||''}</div>
+    <h2>Teacher Activities</h2><div>${data.teacher||''}</div>
+    <h2>Pupil Activities</h2><div>${data.pupils||''}</div>
+    <h2>Evaluation</h2><div>${data.evaluation||''}</div>
+    <h2>Conclusion</h2><div>${data.conclusion||''}</div>
+    <h2>Assignment</h2><div>${data.assignment||''}</div>`;
+  printDocument(html);
 }
 function printTopic(i){
  const c=curriculum[i];
