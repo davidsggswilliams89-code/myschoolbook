@@ -2646,8 +2646,59 @@ const periodLessonLibrary={
   }
 };
 
-function getActiveLessonData(){
-  if(selectedLesson.topic==="Environmental Change" && selectedLesson.periodIndex===0){
+function getActiveLessonData(type="Lesson Plan"){
+  // Resolve lesson material from the currently selected class + subject + term.
+  // This prevents a lesson from one class being reused after changing classes.
+  const selectedClass=document.getElementById('lessonLibraryClass')?.value || 'Primary 5';
+  const selectedTerm=document.getElementById('lessonLibraryTerm')?.value || 'First Term';
+  const selectedSubject=document.getElementById('lessonLibrarySubject')?.value || '';
+  const activeRecord=(curriculumCatalog||[]).find(function(item){
+    return item.className===selectedClass && item.term===selectedTerm && (!selectedSubject || item.subject===selectedSubject);
+  });
+  const weekNumber=(Number(selectedLesson.topicIndex)||0)+1;
+  const periodNumber=(Number(selectedLesson.periodIndex)||0)+1;
+  const collection=type==='Lesson Note' ? (activeRecord?.lessonNotes||[]) : (activeRecord?.lessonPlans||[]);
+  const savedLesson=collection.find(function(item){
+    return Number(item.week)===weekNumber && Number(item.period)===periodNumber;
+  });
+  if(savedLesson){
+    const base={
+      topic:selectedLesson.topic,
+      subtopic:selectedLesson.subtopic,
+      objectives:'', previous:'', materials:'',
+      reference:`${selectedClass} ${selectedTerm} ${activeRecord?.subject||selectedSubject} curriculum.`,
+      entry:'', method:'Discussion, explanation, questioning and guided participation.',
+      content:'', presentation:'', teacher:'', pupils:'', evaluation:'', conclusion:'', assignment:'',
+      presentationNote:'', evaluationHtml:'', assignmentHtml:''
+    };
+    if(type==='Lesson Note'){
+      return {...base,...savedLesson,
+        topic:selectedLesson.topic,
+        subtopic:selectedLesson.subtopic,
+        previous:savedLesson.introduction||base.previous,
+        objectives:(savedLesson.keyPoints||[]).map((x,i)=>`${i+1}. Pupils should understand ${x}.`).join('\n'),
+        entry:savedLesson.introduction||base.entry,
+        content:savedLesson.content||'',
+        presentationNote:savedLesson.summary?`<p>${savedLesson.summary}</p>`:'',
+        teacher:'<p>Explain the lesson content, use relevant examples, ask questions and check pupils’ understanding.</p>',
+        pupils:'<p>Listen, participate, answer questions and write the key points.</p>',
+        evaluation:savedLesson.evaluation||'',
+        evaluationHtml:savedLesson.evaluation||'',
+        conclusion:savedLesson.summary||'',
+        assignment:savedLesson.assignment||'',
+        assignmentHtml:savedLesson.assignment||''
+      };
+    }
+    return {...base,...savedLesson,
+      topic:selectedLesson.topic,
+      subtopic:selectedLesson.subtopic,
+      presentation:savedLesson.presentation||'',
+      evaluation:savedLesson.evaluation||'',
+      conclusion:savedLesson.conclusion||'',
+      assignment:savedLesson.assignment||''
+    };
+  }
+  if(selectedLesson.topic==="Environmental Change" && selectedLesson.periodIndex===0 && selectedClass==='Primary 5'){
     return {...lessonData,topic:selectedLesson.topic,subtopic:selectedLesson.subtopic};
   }
   const key=`${selectedLesson.topic}||${selectedLesson.subtopic}`;
@@ -2678,15 +2729,17 @@ function getActiveLessonData(){
 }
 
 function lessonForm(type,index=0){
-  const c=curriculum[selectedLesson.topicIndex ?? index ?? 0] || curriculum[0];
-  const data=getActiveLessonData();
+  const c=curriculum[selectedLesson.topicIndex ?? index ?? 0] || curriculum[0] || {topic:selectedLesson.topic,periods:[]};
+  const data=getActiveLessonData(type);
   const isNote=type==="Lesson Note";
+  const weekLabel=`Week ${(Number(selectedLesson.topicIndex)||0)+1}`;
+  const periodLabel=`Period ${(Number(selectedLesson.periodIndex)||0)+1}`;
   if(!isNote){
     return `<div class="formgrid">
       <div class="field"><label>Class</label><input value="${document.getElementById('lessonLibraryClass')?.value||''}"></div>
       <div class="field"><label>Subject</label><input value="${document.getElementById('lessonLibrarySubject')?.value||''}"></div>
       <div class="field"><label>Term</label><input value="${document.getElementById('lessonLibraryTerm')?.value||''}"></div>
-      <div class="field"><label>Week</label><input value="Week 1"></div>
+      <div class="field"><label>Week</label><input value="${weekLabel}"></div>
       <div class="field"><label>Topic</label><input value="${c.topic}"></div>
       <div class="field"><label>Sub-topic</label><input value="${data.subtopic}"></div>
       <div class="field"><label>Date</label><input type="date" value="${new Date().toISOString().slice(0,10)}"></div>
@@ -2717,9 +2770,9 @@ function lessonForm(type,index=0){
       <div class="field"><label>Class</label><input value="${document.getElementById('lessonLibraryClass')?.value||''}"></div>
       <div class="field"><label>Subject</label><input value="${document.getElementById('lessonLibrarySubject')?.value||''}"></div>
       <div class="field"><label>Term</label><input value="${document.getElementById('lessonLibraryTerm')?.value||''}"></div>
-      <div class="field"><label>Week</label><input value="Week 1"></div>
+      <div class="field"><label>Week</label><input value="${weekLabel}"></div>
       <div class="field"><label>Date</label><input type="date" value="${new Date().toISOString().slice(0,10)}"></div>
-      <div class="field"><label>Period</label><input value="Period 1"></div>
+      <div class="field"><label>Period</label><input value="${periodLabel}"></div>
       <div class="field"><label>Duration</label><input value="40 minutes"></div>
       <div class="field"><label>Topic</label><input value="${c.topic}"></div>
       <div class="field full"><label>Sub-topic</label><input value="${data.subtopic}"></div>
