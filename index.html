@@ -4280,9 +4280,13 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
     const teacherSnap=await getDoc(doc(db,'teachers',user.uid));
     if(teacherSnap.exists()){
       const teacherData=teacherSnap.data()||{};
-      if(teacherData.role && teacherData.role!=='teacher'){
+      // Older teacher profiles may store the role with different capitalization
+      // or legacy wording. Normalize it before deciding whether to allow access.
+      const normalizedRole=String(teacherData.role||'').trim().toLowerCase();
+      const acceptedTeacherRoles=['','teacher','class teacher','primary teacher'];
+      if(!acceptedTeacherRoles.includes(normalizedRole)){
         await signOut(auth);
-        throw new Error('This account does not have teacher access.');
+        throw new Error('This account is registered with the role "'+teacherData.role+'", not Teacher. Please contact the administrator.');
       }
       return 'teacher';
     }
