@@ -1982,7 +1982,7 @@ html.teacher-auth-pending #firebaseAuthGate{display:none !important;}
 <div id="examTimetableView" class="section-view" style="display:none">
   <div class="section-title"><h2>My Examination Timetable</h2><p></p></div>
   <div class="card"><div class="cardhead"><h3>My Subject Examinations</h3></div><div id="teacherExamTimetableMessage" class="empty">Checking your school connection…</div><div class="tablewrap"><table><thead><tr><th>Date</th><th>Time</th><th>Class</th><th>Subject</th><th>Venue</th><th>Invigilator / Duty</th><th>Term / Session</th></tr></thead><tbody id="teacherExamTimetableRows"><tr><td colspan="7" class="empty">Loading examination timetable…</td></tr></tbody></table></div></div>
-  <div class="card"><div class="cardhead"><h3>Examinations to Invigilate</h3></div><div class="tablewrap"><table><thead><tr><th>Date</th><th>Time</th><th>Class</th><th>Subject</th><th>Venue</th><th>Duty</th><th>Term / Session</th></tr></thead><tbody id="teacherInvigilationRows"><tr><td colspan="7" class="empty">Loading invigilation duties…</td></tr></tbody></table></div></div>
+  <div class="card"><div class="cardhead"><h3>Examinations Assigned for Me to Invigilate</h3></div><div class="tablewrap"><table><thead><tr><th>Date</th><th>Time</th><th>Class</th><th>Subject</th><th>Venue</th><th>Duty</th><th>Term / Session</th></tr></thead><tbody id="teacherInvigilationRows"><tr><td colspan="7" class="empty">Loading invigilation duties…</td></tr></tbody></table></div></div>
 </div>
 
 <div id="academicSessionView" class="section-view" style="display:none">
@@ -1990,8 +1990,32 @@ html.teacher-auth-pending #firebaseAuthGate{display:none !important;}
     <h2>Academic Session</h2>
     <p>School calendar, term dates, examination periods, breaks and public holidays.</p>
   </div>
-  <div id="teacherAcademicCalendarContent">
-    <div class="empty">Loading academic information from your school's registrar…</div>
+  <div class="extra-grid">
+    <div class="info-card">
+      <h3>Academic Session</h3>
+      <p><b>Session:</b> 2026 / 2027</p>
+      <p><b>Current Term:</b> First Term</p>
+      <p><b>Current Status:</b> <span class="status-pill current">Teaching Period</span></p>
+    </div>
+    <div class="info-card">
+      <h3>First Term</h3>
+      <p><b>Resumption:</b> To be set by school</p>
+      <p><b>Examination:</b> To be set by school</p>
+      <p><b>Term Ends:</b> To be set by school</p>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <div class="cardhead"><h3>Academic Calendar</h3></div>
+    <div class="calendar-list" style="padding:12px">
+      <div class="calendar-item"><div class="calendar-date">TERM<small>START</small></div><div><b>First Term Resumption</b><p>School date to be entered.</p></div></div>
+      <div class="calendar-item"><div class="calendar-date">BREAK<small>MID-TERM</small></div><div><b>Mid-Term Break</b><p>School date to be entered.</p></div></div>
+      <div class="calendar-item"><div class="calendar-date">EXAM<small>START</small></div><div><b>First Term Examination</b><p>Examination start date to be entered.</p></div></div>
+      <div class="calendar-item"><div class="calendar-date">TERM<small>END</small></div><div><b>First Term Closing</b><p>Term closing date to be entered.</p></div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="cardhead"><h3>Public Holidays</h3><span class="status-pill">School Calendar</span></div>
+    <div class="empty">Public holiday dates will appear here when entered by the school.</div>
   </div>
 </div>
 
@@ -2121,7 +2145,6 @@ function closeMoreMenu(){
 }
 function showExtraSection(id,menuButton){
   if((id==='myTimetableView'||id==='examTimetableView')&&typeof window.loadTeacherTimetables==='function')window.loadTeacherTimetables();
-  if(id==='academicSessionView'&&typeof window.loadTeacherAcademicCalendar==='function')window.loadTeacherAcademicCalendar();
   document.querySelectorAll("#dashboardView,#lessonsView,#caExamView,#studentsView,#attendanceView,#profileView,#assignmentView,#myClassesView,#myTimetableView,#examTimetableView,#academicSessionView,#settingsView,#subscriptionView,#holidayView").forEach(v=>v.style.display="none");
   const target=document.getElementById(id);
   if(target) target.style.display="block";
@@ -2322,61 +2345,29 @@ async function saveAllStudentsToFirestore(){
 }
 window.loadStudentsFromFirestore=async function(){
  const db=window.teacherFirestore,uid=window.firebaseTeacherUID;
- if(!db||!uid) throw new Error("Teacher Firebase account is not ready.");
+ if(!db||!uid)throw new Error("Teacher Firebase account is not ready.");
  try{
-   clearLegacyStudentLocalStorage();
-
-   const snap=await window.firebaseFirestoreFns.getDocs(
-     window.firebaseFirestoreFns.collection(db,"teachers",uid,"students")
-   );
-
-   // Firebase is the single source of truth. Empty collection = genuinely zero students.
-   students=snap.docs.map(function(d){
-     const x=d.data()||{};
-     return [
-       x.admissionNumber||"",
-       x.name||"",
-       x.gender||"",
-       Number(x.ca1||0),
-       Number(x.ca2||0),
-       Number(x.ca3||0),
-       Number(x.exam||0),
-       {
-         phone:x.parentPhone||"",
-         dob:x.dob||"",
-         className:x.className||"",
-         guardian:x.guardian||"",
-         address:x.address||"",
-         photo:x.photo||""
-       },
-       {firestoreId:d.id}
-     ];
-   });
-
-   refreshStudentViews();
-   if(typeof window.renderAttendance==="function") window.renderAttendance();
-
-   const sourceNote=document.getElementById("studentFirebaseSourceNote");
-   if(sourceNote){
-     sourceNote.textContent="🔥 Firebase connected. "+students.length+" student"+(students.length===1?"":"s")+" loaded for this teacher.";
-     sourceNote.style.background="#f3faf7";
-     sourceNote.style.borderColor="#cfe4dd";
-     sourceNote.style.color="#35505f";
-   }
-   return {ok:true,count:students.length};
+  clearLegacyStudentLocalStorage();
+  const c=window.activeTeacherConnection||null;
+  if(c&&["connected","approved","active"].includes(String(c.status||"").toLowerCase())&&c.schoolId){
+   const pairClasses=teacherAssignedPairs().map(a=>a.className||a.class).filter(Boolean);
+   const classes=[...new Set(pairClasses.length?pairClasses:teacherAssignedClasses())];
+   if(!classes.length)throw new Error("Your school connection is active, but the registrar has not assigned any classes yet.");
+   const ref=window.firebaseFirestoreFns.collection(db,"schools",c.schoolId,"students"),snaps=[];
+   for(let i=0;i<classes.length;i+=10){snaps.push(await window.firebaseFirestoreFns.getDocs(window.firebaseFirestoreFns.query(ref,window.firebaseFirestoreFns.where("className","in",classes.slice(i,i+10)))));}
+   const docs=new Map();snaps.forEach(s=>s.docs.forEach(d=>docs.set(d.id,d)));
+   students=[...docs.values()].map(d=>{const x=d.data()||{};return [x.admissionNumber||x.admissionNo||"",x.name||x.studentName||x.fullName||"",x.gender||"",Number(x.ca1||0),Number(x.ca2||0),Number(x.ca3||0),Number(x.exam||0),{phone:x.parentPhone||x.parentGuardianPhone||x.phone||"",dob:x.dob||x.dateOfBirth||"",className:x.className||x.class||x.classLevel||"",guardian:x.guardian||x.parentGuardianName||x.parentName||"",address:x.address||x.parentAddress||"",photo:x.photo||x.studentPhoto||""},{schoolStudentId:d.id,firestoreId:""}];}).filter(s=>classes.includes(studentInfo(s).className));
+   applyAssignedClassFilters();refreshStudentViews();if(typeof window.renderAttendance==="function")window.renderAttendance();
+   const note=document.getElementById("studentFirebaseSourceNote");if(note){note.textContent="Connected school register: "+students.length+" official student record"+(students.length===1?"":"s")+" loaded for your assigned classes.";note.style.display="";note.style.background="#f3faf7";note.style.borderColor="#cfe4dd";note.style.color="#35505f";}
+   return {ok:true,count:students.length,source:"school-register"};
+  }
+  const snap=await window.firebaseFirestoreFns.getDocs(window.firebaseFirestoreFns.collection(db,"teachers",uid,"students"));
+  students=snap.docs.map(d=>{const x=d.data()||{};return [x.admissionNumber||"",x.name||"",x.gender||"",Number(x.ca1||0),Number(x.ca2||0),Number(x.ca3||0),Number(x.exam||0),{phone:x.parentPhone||"",dob:x.dob||"",className:x.className||"",guardian:x.guardian||"",address:x.address||"",photo:x.photo||""},{firestoreId:d.id}];});
+  refreshStudentViews();if(typeof window.renderAttendance==="function")window.renderAttendance();return {ok:true,count:students.length,source:"teacher"};
  }catch(err){
-   console.error("Student Firebase query failed:",err);
-   // Do not convert a Firebase read failure into an empty student database.
-   refreshStudentViews();
-   if(typeof window.renderAttendance==="function") window.renderAttendance();
-
-   const sourceNote=document.getElementById("studentFirebaseSourceNote");
-   if(sourceNote){
-     sourceNote.textContent='';
-     sourceNote.style.display='none';
-   }
-   // Keep the existing student data visible instead of replacing the list with zero.
-   return {ok:false,count:students.length,source:"current"};
+  console.error("Student Firebase query failed:",err);if(teacherIsSchoolConnected())students=[];refreshStudentViews();if(typeof window.renderAttendance==="function")window.renderAttendance();
+  const note=document.getElementById("studentFirebaseSourceNote");if(note){note.textContent=(teacherIsSchoolConnected()?"Official school student list could not load: ":"Firebase student loading failed: ")+(err?.message||"Check Firestore rules.");note.style.display="";note.style.background="#fff1f2";note.style.borderColor="#fecdd3";note.style.color="#9f1239";}
+  return {ok:false,count:students.length,error:err?.message||String(err)};
  }
 };
 
@@ -2385,6 +2376,23 @@ function primarySchoolClasses(){
   return ["Primary 1","Primary 2","Primary 3","Primary 4","Primary 5","Primary 6"];
 }
 
+function teacherIsSchoolConnected(){const r=window.activeTeacherConnection||null;return !!(r&&["connected","approved","active"].includes(String(r.status||"").toLowerCase())&&r.schoolId);}
+function teacherAssignedPairs(){const r=window.activeTeacherConnection||{};return Array.isArray(r.assignedTeachingAssignments)?r.assignedTeachingAssignments:[];}
+function teacherAssignedClasses(){const pairs=teacherAssignedPairs(),fromPairs=pairs.map(a=>a.className||a.class).filter(Boolean),r=window.activeTeacherConnection||{},legacy=Array.isArray(r.assignedClasses)?r.assignedClasses:(r.assignedClass?[r.assignedClass]:[]);return [...new Set(fromPairs.length?fromPairs:legacy)];}
+function teacherAssignedSubjectsForClass(cls){const p=teacherAssignedPairs().filter(a=>(a.className||a.class)===cls).map(a=>a.subject).filter(Boolean);if(p.length)return [...new Set(p)];const r=window.activeTeacherConnection||{};return Array.isArray(r.assignedSubjects)?r.assignedSubjects:[];}
+function applyAssignedClassFilters(){
+ if(!teacherIsSchoolConnected())return;const classes=teacherAssignedClasses();if(!classes.length)return;
+ const setOptions=(el,values,placeholder)=>{if(!el)return;const old=el.value;el.replaceChildren();if(placeholder!==null)el.add(new Option(placeholder,""));values.forEach(v=>el.add(new Option(v,v)));if(values.includes(old))el.value=old;else if(values.length)el.value=values[0];el.disabled=values.length<=1;};
+ setOptions(document.getElementById("classSelect"),classes,null);setOptions(document.getElementById("attendanceClassFilter"),classes,null);setOptions(document.getElementById("lessonLibraryClass"),classes,null);
+ const cls=document.getElementById("classSelect")?.value||classes[0];setOptions(document.getElementById("dashboardSubjectFilter"),teacherAssignedSubjectsForClass(cls),"All Assigned Subjects");
+ const lcls=document.getElementById("lessonLibraryClass")?.value||classes[0];setOptions(document.getElementById("lessonLibrarySubject"),teacherAssignedSubjectsForClass(lcls),"Select Assigned Subject");
+ if(typeof window.updateDashboard==="function")window.updateDashboard();if(typeof window.renderStudents==="function")window.renderStudents();if(typeof window.renderAttendance==="function")window.renderAttendance();
+}
+window.teacherIsSchoolConnected=teacherIsSchoolConnected;window.teacherAssignedClasses=teacherAssignedClasses;window.teacherAssignedSubjectsForClass=teacherAssignedSubjectsForClass;window.applyAssignedClassFilters=applyAssignedClassFilters;
+document.getElementById("classSelect")?.addEventListener("change",()=>{if(teacherIsSchoolConnected())applyAssignedClassFilters();if(typeof window.renderStudents==="function")window.renderStudents();});
+document.getElementById("lessonLibraryClass")?.addEventListener("change",()=>{if(teacherIsSchoolConnected())applyAssignedClassFilters();});
+
+function visibleStudentRecords(){const selected=document.getElementById("classSelect")?.value||"",connected=teacherIsSchoolConnected(),allowed=connected?teacherAssignedClasses():[];return students.map((s,index)=>({s,index})).filter(x=>{const cls=studentInfo(x.s).className;if(connected&&!allowed.includes(cls))return false;return !selected||cls===selected;});}
 function selectedDashboardClass(){return document.getElementById("classSelect")?.value||"Primary 5";}
 function selectedDashboardTerm(){return document.getElementById("termSelect")?.value||"First Term";}
 function visibleStudentRecords(){const cls=selectedDashboardClass();return students.map((s,index)=>({s,index})).filter(x=>studentInfo(x.s).className===cls);}
@@ -2544,9 +2552,9 @@ function renderCurriculum(){
  }).join("");
 }
 function renderStudents(){
- const body=document.querySelector("#studentsBody");
- if(!body) return;
- body.innerHTML=students.map((s,i)=>`<tr><td>${i+1}</td><td>${s[0]}</td><td>${s[1]}</td><td>${s[2]}</td><td><button class="btn blue" onclick="viewStudentResult(${i})">View</button></td></tr>`).join("");
+ const body=document.querySelector("#studentsBody");if(!body)return;const records=visibleStudentRecords();
+ body.innerHTML=records.map((x,n)=>{const s=x.s,info=studentInfo(s),photo=info.photo?`<img src="${String(info.photo).replace(/"/g,"&quot;")}" alt="Student photo" style="width:42px;height:52px;object-fit:cover;border-radius:6px">`:"—";return `<tr><td>${n+1}</td><td>${photo}</td><td>${s[0]||""}</td><td>${s[1]||""}</td><td>${s[2]||""}</td><td>${info.className||""}</td><td><button class="btn blue" onclick="viewStudentResult(${x.index})">View</button></td></tr>`;}).join("")||`<tr><td colspan="7" class="empty">No students found for ${document.getElementById("classSelect")?.value||"this class"}.</td></tr>`;
+ const count=document.getElementById("studentCount");if(count)count.textContent=records.length+" Student"+(records.length===1?"":"s");
 }
 function viewStudentResult(i){
  currentStudentIndex=i;
@@ -2836,7 +2844,7 @@ function openCA(n){
       <div class="meta-item"><b>Teacher name:</b> ${teacherFullName()}</div>
     </div>
     <div class="tablewrap"><table><thead><tr><th>S/N</th><th>Admission No.</th><th>Student</th><th>Score /10</th></tr></thead><tbody>
-    ${students.map((s,i)=>`<tr><td>${i+1}</td><td>${s[0]}</td><td>${s[1]}</td><td><input style="width:75px;padding:7px" type="number" min="0" max="10" value="${s[n+2]}"></td></tr>`).join("")}
+    ${visibleStudentRecords().map((x,i)=>{const s=x.s;return `<tr><td>${i+1}</td><td>${s[0]}</td><td>${s[1]}</td><td><input data-student-index="${x.index}" style="width:75px;padding:7px" type="number" min="0" max="10" value="${s[n+2]}"></td></tr>`;}).join("")}
     </tbody></table></div>`);
 }
 
@@ -2852,7 +2860,7 @@ function openExam(){
       <div class="meta-item"><b>Teacher name:</b> ${teacherFullName()}</div>
     </div>
     <div class="tablewrap"><table><thead><tr><th>S/N</th><th>Admission No.</th><th>Student</th><th>Exam /70</th></tr></thead><tbody>
-    ${students.map((s,i)=>`<tr><td>${i+1}</td><td>${s[0]}</td><td>${s[1]}</td><td><input style="width:75px;padding:7px" type="number" min="0" max="70" value="${s[6]}"></td></tr>`).join("")}
+    ${visibleStudentRecords().map((x,i)=>{const s=x.s;return `<tr><td>${i+1}</td><td>${s[0]}</td><td>${s[1]}</td><td><input data-student-index="${x.index}" style="width:75px;padding:7px" type="number" min="0" max="70" value="${s[6]}"></td></tr>`;}).join("")}
     </tbody></table></div>`);
 }
 
@@ -2898,24 +2906,19 @@ function openResults(){
   `);
 }
 
-function saveAssessment(){
-  if(!currentAssessmentType) return;
-  const isCA=currentAssessmentType.kind==="ca";
-  const n=isCA ? currentAssessmentType.number : null;
-  students.forEach((s,i)=>{
-    const el=document.querySelector(`#modalBody input[type="number"]`);
-  });
-  const inputs=[...document.querySelectorAll("#modalBody input[type=number]")];
-  students.forEach((s,i)=>{
-    const value=Math.max(0,Math.min(isCA?10:70,Number(inputs[i]?.value||0)));
-    if(isCA) s[n+2]=value;
-    else s[6]=value;
-  });
-  renderResults();
-  alert((isCA ? `${n}${n===1?"st":n===2?"nd":"rd"} C.A` : "Examination")+" saved successfully.");
-  closeModal();
+async function saveAssessment(){
+ if(!currentAssessmentType)return;const isCA=currentAssessmentType.kind==="ca",n=isCA?currentAssessmentType.number:null,inputs=[...document.querySelectorAll("#modalBody input[type=number]")],shown=visibleStudentRecords();
+ for(let i=0;i<shown.length;i++){
+  const s=shown[i].s,value=Math.max(0,Math.min(isCA?10:70,Number(inputs[i]?.value||0)));
+  if(isCA)s[n+2]=value;else s[6]=value;
+  if(teacherIsSchoolConnected()){
+   const sid=s[8]?.schoolStudentId,c=window.activeTeacherConnection;if(!sid||!c?.schoolId)continue;
+   const patch={updatedAt:window.firebaseFirestoreFns.serverTimestamp(),updatedByTeacherUid:window.firebaseTeacherUID};if(isCA)patch["ca"+n]=value;else patch.exam=value;
+   await window.firebaseFirestoreFns.setDoc(window.firebaseFirestoreFns.doc(window.teacherFirestore,"schools",c.schoolId,"students",sid),patch,{merge:true});
+  }else if(typeof saveStudentToFirestore==="function")await saveStudentToFirestore(s);
+ }
+ renderResults();alert((isCA?`${n}${n===1?"st":n===2?"nd":"rd"} C.A`:"Examination")+" saved successfully.");closeModal();
 }
-
 function printAssessment(){
   if(!currentAssessmentType) return;
   const isCA=currentAssessmentType.kind==="ca";
@@ -4425,9 +4428,9 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
     try{
       const user=auth.currentUser;if(!user)return;
       const qs=await getDocs(query(collection(db,'teacherConnectionRequests'),where('teacherUid','==',user.uid)));
-      if(qs.empty){activeTeacherConnection=null;renderTeacherAssignments(null);const schoolInput=document.getElementById('teacherSchool');if(schoolInput)schoolInput.readOnly=false;showTeacherConnectionStatus('Not connected to a school yet. Enter the School ID above to send a request.');return;}
+      if(qs.empty){activeTeacherConnection=null;window.activeTeacherConnection=null;renderTeacherAssignments(null);const schoolInput=document.getElementById('teacherSchool');if(schoolInput)schoolInput.readOnly=false;showTeacherConnectionStatus('Not connected to a school yet. Enter the School ID above to send a request.');return;}
       const records=qs.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.updatedAt?.seconds||b.requestedAt?.seconds||0)-(a.updatedAt?.seconds||a.requestedAt?.seconds||0));
-      const r=records[0];activeTeacherConnection=r;renderTeacherAssignments(r);const schoolInput=document.getElementById('teacherSchool');if(schoolInput){schoolInput.readOnly=r.status==='connected';if(r.status==='connected')schoolInput.value=r.schoolName||schoolInput.value;schoolInput.title=r.status==='connected'?'Official school name is managed by the registrar.':'Enter your school name';}
+      const r=records[0];activeTeacherConnection=r;window.activeTeacherConnection=r;renderTeacherAssignments(r);if(typeof window.applyAssignedClassFilters==='function')window.applyAssignedClassFilters();if(typeof window.loadStudentsFromFirestore==='function')await window.loadStudentsFromFirestore();const schoolInput=document.getElementById('teacherSchool');if(schoolInput){schoolInput.readOnly=r.status==='connected';if(r.status==='connected')schoolInput.value=r.schoolName||schoolInput.value;schoolInput.title=r.status==='connected'?'Official school name is managed by the registrar.':'Enter your school name';}
       if(r.status==='connected')showTeacherConnectionStatus(`Connected to ${r.schoolName||'your school'} · School ID: ${r.schoolId}${r.assignedClass?' · Class: '+r.assignedClass:''}${r.assignedRole?' · Role: '+r.assignedRole:''}`,'success');
       else if(r.status==='pending')showTeacherConnectionStatus(`Connection request pending approval for ${r.schoolName||'the school'} · School ID: ${r.schoolId}`);
       else if(r.status==='deactivated')showTeacherConnectionStatus(`Your connection to ${r.schoolName||'the school'} has been deactivated. Contact the registrar or request a new connection.`,'error');
@@ -4479,26 +4482,6 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
       setTimetableMessage('teacherTimetableMessage',lessonRows.length+' timetable entr'+(lessonRows.length===1?'y':'ies')+' matching your assigned classes and subjects.');setTimetableMessage('teacherExamTimetableMessage',examRows.length+' examination entr'+(examRows.length===1?'y':'ies')+' matching your assignments or invigilation duties.');
     }catch(e){console.error('Teacher timetable load failed:',e);setTimetableMessage('teacherTimetableMessage','Could not load timetable. Check Firestore rules for the school timetable.',true);setTimetableMessage('teacherExamTimetableMessage','Could not load exam timetable. Check Firestore rules for the school exam timetable.',true);lessonBody.innerHTML='<tr><td colspan="6" class="empty">Timetable unavailable.</td></tr>';examBody.innerHTML='<tr><td colspan="7" class="empty">Exam timetable unavailable.</td></tr>';if(dutyBody)dutyBody.innerHTML=examBody.innerHTML;}
   }
-  async function loadTeacherAcademicCalendar(){
-    const host=document.getElementById('teacherAcademicCalendarContent');if(!host)return;
-    try{
-      if(!activeTeacherConnection||activeTeacherConnection.status!=='connected')await refreshTeacherSchoolConnection();
-      const rec=activeTeacherConnection;
-      if(!rec?.schoolId||rec.status!=='connected'){host.innerHTML='<div class="empty">Connect to your school to view the academic calendar published by the registrar.</div>';return;}
-      const snap=await getDoc(doc(db,'schools',rec.schoolId));
-      if(!snap.exists()){host.innerHTML='<div class="empty">School academic information is not available.</div>';return;}
-      const school=snap.data();
-      // Expected registrar-managed fields: academicSession, currentTerm, currentStatus, termDates, academicCalendar, publicHolidays.
-      const ac=school.academicCalendar||{};const terms=Array.isArray(ac.events)?ac.events:[];const holidays=Array.isArray(school.publicHolidays)?school.publicHolidays:(Array.isArray(ac.publicHolidays)?ac.publicHolidays:[]);
-      const val=(v)=>v?String(v):'Not yet set by registrar';
-      const esc=(v)=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-      const termDates=school.termDates||ac.termDates||{};
-      const eventRows=terms.map(e=>`<div class="calendar-item"><div class="calendar-date">${esc(e.badge||'DATE')}<small>${esc(e.badgeLabel||'')}</small></div><div><b>${esc(e.title||'Academic event')}</b><p>${esc(e.date||e.dateText||'Date not yet set')}${e.description?' · '+esc(e.description):''}</p></div></div>`).join('');
-      const holidayRows=holidays.map(h=>`<div class="calendar-item"><div class="calendar-date">HOLIDAY</div><div><b>${esc(h.name||h.title||'Public holiday')}</b><p>${esc(h.date||h.dateText||'Date not yet set')}</p></div></div>`).join('');
-      host.innerHTML=`<div class="extra-grid"><div class="info-card"><h3>Academic Session</h3><p><b>Session:</b> ${esc(school.academicSession||ac.session||'Not yet set by registrar')}</p><p><b>Current Term:</b> ${esc(school.currentTerm||ac.currentTerm||'Not yet set by registrar')}</p><p><b>Current Status:</b> <span class="status-pill current">${esc(school.currentStatus||ac.currentStatus||'Not yet set')}</span></p></div><div class="info-card"><h3>${esc(school.currentTerm||ac.currentTerm||'Term Dates')}</h3><p><b>Resumption:</b> ${esc(termDates.resumption||termDates.termStart)}</p><p><b>Examination:</b> ${esc(termDates.examination||termDates.examStart)}</p><p><b>Term Ends:</b> ${esc(termDates.termEnd||termDates.closing)}</p></div></div><div class="card" style="margin-top:14px"><div class="cardhead"><h3>Academic Calendar</h3></div><div class="calendar-list" style="padding:12px">${eventRows||'<div class="empty">The registrar has not published academic calendar events yet.</div>'}</div></div><div class="card"><div class="cardhead"><h3>Public Holidays</h3><span class="status-pill">School Calendar</span></div><div class="calendar-list" style="padding:12px">${holidayRows||'<div class="empty">No public holidays have been published by the registrar.</div>'}</div></div>`;
-    }catch(e){console.error('Academic calendar load failed:',e);host.innerHTML='<div class="empty">Could not load academic information. Please check school access permissions.</div>';}
-  }
-  window.loadTeacherAcademicCalendar=loadTeacherAcademicCalendar;
   window.loadTeacherTimetables=loadTeacherTimetables;
 
   async function requestTeacherSchoolConnection(){
