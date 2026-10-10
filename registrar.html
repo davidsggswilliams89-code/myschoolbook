@@ -242,14 +242,14 @@ $("generalTimetableForm")?.addEventListener("submit",async e=>{e.preventDefault(
 $("examTimetableForm")?.addEventListener("submit",async e=>{e.preventDefault();const btn=$("saveExamEntry");if(!user||!profile?.schoolId)return setTableStatus("examTimetableStatus","School profile is not ready.","error");const cls=$("exClass").value,subject=$("exSubject").value,startTime=$("exStart").value,endTime=$("exEnd").value;if(endTime<=startTime)return setTableStatus("examTimetableStatus","End time must be later than start time.","error");btn.disabled=true;try{await loadConnectedTeachers();const teacher=connectedTeacherCache.find(t=>t.teacherUid===$("exInvigilator").value);if(!teacher)throw new Error("Select a connected teacher to serve as invigilator.");const payload={schoolId:profile.schoolId,date:$("exDate").value,className:cls,subject,assignmentKey:cls+"::"+subject,startTime,endTime,venue:$("exVenue").value.trim(),term:$("exTerm").value,academicSession:$("exSession").value.trim(),invigilatorUid:teacher.teacherUid,invigilatorName:teacher.teacherName||teacher.teacherEmail||"Teacher",invigilatorEmail:teacher.teacherEmail||"",paper:$("exPaper").value.trim(),notes:$("exNotes").value.trim(),createdBy:user.uid,createdAt:serverTimestamp(),updatedAt:serverTimestamp()};await addDoc(collection(db,"schools",profile.schoolId,"examTimetable"),payload);$("examTimetableForm").reset();$("exSession").value=$("session").value||"2026/2027";fillTimetableSelects();await loadConnectedTeachers();populateInvigilatorOptions();setTableStatus("examTimetableStatus","Examination timetable published and invigilator assigned.","success");await refreshTimetableCollection("exam");}catch(e){console.error(e);setTableStatus("examTimetableStatus",err(e),"error")}finally{btn.disabled=false}});
 $("refreshTimetable")?.addEventListener("click",()=>refreshTimetableCollection("lesson"));$("refreshExamTimetable")?.addEventListener("click",()=>refreshTimetableCollection("exam"));
 function parsePipeRows(text,fields){
- return String(text||"").split(/\\r?\\n/).map(line=>line.trim()).filter(Boolean).map(line=>{
+ return String(text||"").split(/\r?\n/).map(line=>line.trim()).filter(Boolean).map(line=>{
   const parts=line.split("|").map(x=>x.trim());const item={};
   fields.forEach((field,index)=>{if(parts[index])item[field]=parts[index]});
   return item;
  });
 }
 function formatPipeRows(rows,fields){
- return (Array.isArray(rows)?rows:[]).map(row=>fields.map(field=>row[field]||"").join(" | ").replace(/\\s*\\|\\s*$/,"")).join("\\n");
+ return (Array.isArray(rows)?rows:[]).map(row=>fields.map(field=>row[field]||"").join(" | ").replace(/\s*\|\s*$/,"")).join("\n");
 }
 async function loadAcademicSessionForm(){
  if(!profile?.schoolId)return;
