@@ -2337,32 +2337,19 @@ window.loadStudentsFromFirestore=async function(){
  try{
    clearLegacyStudentLocalStorage();
 
-   const snap=await window.firebaseFirestoreFns.getDocs(
-     window.firebaseFirestoreFns.collection(db,"teachers",uid,"students")
-   );
-
-   // Firebase is the single source of truth. Empty collection = genuinely zero students.
+   const connection=window.activeTeacherConnectionForDashboard;
+   const snap=connection?.status==="connected"&&connection.schoolId
+     ? await window.firebaseFirestoreFns.getDocs(window.firebaseFirestoreFns.collection(db,"schools",connection.schoolId,"students"))
+     : await window.firebaseFirestoreFns.getDocs(window.firebaseFirestoreFns.collection(db,"teachers",uid,"students"));
+   const pairs=connection?.status==="connected"?(connection.assignedTeachingAssignments||[]):[];
+   const allowedClasses=[...new Set(pairs.map(a=>a.className||a.class).filter(Boolean))];
+   const subject=selectedDashboardSubject();
    students=snap.docs.map(function(d){
-     const x=d.data()||{};
-     return [
-       x.admissionNumber||"",
-       x.name||"",
-       x.gender||"",
-       Number(x.ca1||0),
-       Number(x.ca2||0),
-       Number(x.ca3||0),
-       Number(x.exam||0),
-       {
-         phone:x.parentPhone||"",
-         dob:x.dob||"",
-         className:x.className||"",
-         guardian:x.guardian||"",
-         address:x.address||"",
-         photo:x.photo||""
-       },
-       {firestoreId:d.id}
-     ];
-   });
+     const x=d.data()||{},subjectData=(x.subjectAssessments&&subject&&x.subjectAssessments[subject])||{};
+     return [x.admissionNumber||"",x.name||"",x.gender||"",Number(subjectData.ca1??x.ca1??0),Number(subjectData.ca2??x.ca2??0),Number(subjectData.ca3??x.ca3??0),Number(subjectData.exam??x.exam??0),
+       {phone:x.parentPhone||"",dob:x.dob||"",className:x.className||"",guardian:x.guardian||"",address:x.address||"",photo:x.photo||""},
+       {firestoreId:d.id,schoolManaged:connection?.status==="connected",schoolId:connection?.schoolId||"",subject}];
+   }).filter(student=>!allowedClasses.length||allowedClasses.includes(studentInfo(student).className));
 
    refreshStudentViews();
    if(typeof window.renderAttendance==="function") window.renderAttendance();
@@ -2398,7 +2385,11 @@ function primarySchoolClasses(){
 
 function selectedDashboardClass(){return document.getElementById("classSelect")?.value||"Primary 5";}
 function selectedDashboardTerm(){return document.getElementById("termSelect")?.value||"First Term";}
-function visibleStudentRecords(){const cls=selectedDashboardClass();return students.map((s,index)=>({s,index})).filter(x=>studentInfo(x.s).className===cls);}
+function selectedDashboardSubject(){return document.getElementById("dashboardSubjectFilter")?.value||"";}
+function connectedAssignmentPairs(){const r=window.activeTeacherConnectionForDashboard;return r&&r.status==="connected"&&Array.isArray(r.assignedTeachingAssignments)?r.assignedTeachingAssignments:[];}
+function isSchoolManagedTeacher(){const r=window.activeTeacherConnectionForDashboard;return !!(r&&r.status==="connected"&&r.schoolId);}
+function applyConnectedDashboardFilters(){const r=window.activeTeacherConnectionForDashboard;if(!r||r.status!=="connected")return;const pairs=connectedAssignmentPairs(),classes=[...new Set(pairs.map(a=>a.className||a.class).filter(Boolean))],subjects=[...new Set(pairs.map(a=>a.subject).filter(Boolean))];const fill=(sel,items,label)=>{if(!sel)return;const old=sel.value;sel.replaceChildren(new Option(label,""));items.forEach(v=>sel.add(new Option(v,v)));sel.value=items.includes(old)?old:(items[0]||"");};fill(document.getElementById("classSelect"),classes,"Select assigned class");fill(document.getElementById("dashboardSubjectFilter"),subjects,"Select assigned subject");fill(document.getElementById("lessonLibraryClass"),classes,"Select assigned class");fill(document.getElementById("lessonLibrarySubject"),subjects,"Select assigned subject");fill(document.getElementById("newStudentClass"),classes,"Select assigned class");}
+function visibleStudentRecords(){const cls=selectedDashboardClass(),pairs=connectedAssignmentPairs();return students.map((s,index)=>({s,index})).filter(x=>studentInfo(x.s).className===cls&&(!isSchoolManagedTeacher()||pairs.some(a=>(a.className||a.class)===cls)));}
 
 const lessonData={
   topic:"Environmental Change",
@@ -4401,7 +4392,7 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
     const user=auth.currentUser;if(!user)throw new Error('Please sign in as a teacher first.');
     const snap=await getDoc(doc(db,'teachers',user.uid));return snap.exists()?snap.data():{};
   }
-  let activeTeacherConnection=null;
+  let activeTeacherConnection=null; window.activeTeacherConnectionForDashboard=null;
   function renderTeacherAssignments(record){
     const box=document.getElementById('dynamicMyClasses');if(!box)return;box.replaceChildren();
     const classes=record?.assignedClasses?.length?record.assignedClasses:(record?.assignedClass?[record.assignedClass]:[]);
@@ -4425,9 +4416,9 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
     try{
       const user=auth.currentUser;if(!user)return;
       const qs=await getDocs(query(collection(db,'teacherConnectionRequests'),where('teacherUid','==',user.uid)));
-      if(qs.empty){activeTeacherConnection=null;renderTeacherAssignments(null);const schoolInput=document.getElementById('teacherSchool');if(schoolInput)schoolInput.readOnly=false;showTeacherConnectionStatus('Not connected to a school yet. Enter the School ID above to send a request.');return;}
+      if(qs.empty){activeTeacherConnection=null;window.activeTeacherConnectionForDashboard=null;renderTeacherAssignments(null);const schoolInput=document.getElementById('teacherSchool');if(schoolInput)schoolInput.readOnly=false;showTeacherConnectionStatus('Not connected to a school yet. Enter the School ID above to send a request.');return;}
       const records=qs.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.updatedAt?.seconds||b.requestedAt?.seconds||0)-(a.updatedAt?.seconds||a.requestedAt?.seconds||0));
-      const r=records[0];activeTeacherConnection=r;renderTeacherAssignments(r);const schoolInput=document.getElementById('teacherSchool');if(schoolInput){schoolInput.readOnly=r.status==='connected';if(r.status==='connected')schoolInput.value=r.schoolName||schoolInput.value;schoolInput.title=r.status==='connected'?'Official school name is managed by the registrar.':'Enter your school name';}
+      const r=records[0];activeTeacherConnection=r;window.activeTeacherConnectionForDashboard=r;applyConnectedDashboardFilters();renderTeacherAssignments(r);const schoolInput=document.getElementById('teacherSchool');if(schoolInput){schoolInput.readOnly=r.status==='connected';if(r.status==='connected')schoolInput.value=r.schoolName||schoolInput.value;schoolInput.title=r.status==='connected'?'Official school name is managed by the registrar.':'Enter your school name';}
       if(r.status==='connected')showTeacherConnectionStatus(`Connected to ${r.schoolName||'your school'} · School ID: ${r.schoolId}${r.assignedClass?' · Class: '+r.assignedClass:''}${r.assignedRole?' · Role: '+r.assignedRole:''}`,'success');
       else if(r.status==='pending')showTeacherConnectionStatus(`Connection request pending approval for ${r.schoolName||'the school'} · School ID: ${r.schoolId}`);
       else if(r.status==='deactivated')showTeacherConnectionStatus(`Your connection to ${r.schoolName||'the school'} has been deactivated. Contact the registrar or request a new connection.`,'error');
