@@ -38,7 +38,7 @@ ol{line-height:1.8;color:#445248;font-size:14px}footer{text-align:center;color:v
 <section id="dashboard" class="hidden">
 <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin:22px 0"><div><h3 id="welcome">Registrar Dashboard</h3><p class="muted" style="margin:5px 0 0">Your school profile has been saved.</p></div><button id="edit" class="secondary">Edit profile</button></div>
 <div class="stats"><div class="card stat"><span>School status</span><strong>Profile created</strong></div><div class="card stat"><span>Classes</span><strong>Not configured yet</strong></div><div class="card stat"><span>Connected teachers</span><strong>0 — not connected yet</strong></div></div>
-<div class="card"><h3>School Profile</h3><div style="display:flex;align-items:center;gap:16px;margin:12px 0"><img id="dashboardSchoolPhoto" class="hidden" alt="School profile photo" style="width:100px;height:100px;object-fit:contain;border:1px solid var(--line);border-radius:12px;background:#fff;padding:6px"><div><strong id="dashboardSchoolName"></strong><p id="schoolId" class="muted" style="margin:6px 0 0"></p></div></div><div id="details" class="details"></div></div>
+<div class="card"><h3>School Profile</h3><div style="display:flex;align-items:center;gap:16px;margin:12px 0"><img id="dashboardSchoolPhoto" class="hidden" alt="School profile photo" style="width:100px;height:100px;object-fit:contain;border:1px solid var(--line);border-radius:12px;background:#fff;padding:6px"><div style="flex:1;min-width:180px"><strong id="dashboardSchoolName"></strong><p id="schoolId" class="muted" style="margin:6px 0 8px;overflow-wrap:anywhere"></p><button id="copySchoolId" type="button" class="primary" style="padding:9px 13px;font-size:14px">Copy School ID</button><span id="copySchoolIdMessage" class="muted" aria-live="polite" style="display:block;margin-top:6px"></span></div></div><div id="details" class="details"></div></div>
 <div class="card" style="margin-top:18px"><h3>Teacher Connection Requests</h3><p class="muted">Review teachers who requested to connect to this school. Approve only teachers you recognize.</p><div id="teacherConnectionsMessage" class="muted" style="margin:10px 0">Loading teacher requests…</div><div id="teacherConnectionList"></div><button id="refreshTeacherConnections" type="button" class="secondary" style="margin-top:12px">Refresh teacher requests</button></div>
 <div class="card"><h3>Next modules</h3><p class="muted">We will build and test these in separate stages.</p><ol><li>Primary 1–6 class management.</li><li>Official student registration and records.</li><li>Teacher invitations and connection requests.</li><li>Registrar approval and teacher assignments.</li><li>Secure connection to the independent Teacher Dashboard.</li></ol></div>
 </section>
@@ -57,6 +57,21 @@ function err(e){const map={"auth/email-already-in-use":"This email already has a
 function setBusy(v){busy=v;document.querySelectorAll("form button[type=submit]").forEach(b=>{b.disabled=v;b.style.opacity=v?".6":"1"})}
 function detail(label,value){const d=document.createElement("div");d.className="item";const s=document.createElement("small"),b=document.createElement("strong");s.textContent=label;b.textContent=value||"Not provided";d.append(s,b);return d}
 function render(school){$("welcome").textContent="Welcome, "+(user.displayName||profile?.fullName||"Registrar");$("dashboardSchoolName").textContent=school.name||"School Profile";$("schoolId").textContent="School ID: "+school.id;const photo=$("dashboardSchoolPhoto");if(school.photo){photo.src=school.photo;photo.classList.remove("hidden")}else{photo.removeAttribute("src");photo.classList.add("hidden")}const d=$("details");d.replaceChildren(detail("Official school name",school.name),detail("School type",school.type),detail("School address",school.address),detail("School phone",school.phone),detail("Academic session",school.academicSession),detail("Registrar",profile?.fullName||user.displayName));view("dashboard");refreshTeacherConnections().catch(e=>console.error(e))}
+async function copySchoolId(){
+ const id=profile?.schoolId;
+ const feedback=$("copySchoolIdMessage");
+ if(!id){feedback.textContent="School ID is not available yet.";return;}
+ try{
+  if(navigator.clipboard && window.isSecureContext){await navigator.clipboard.writeText(id);}
+  else{
+   const temp=document.createElement("textarea");temp.value=id;temp.setAttribute("readonly","");temp.style.position="fixed";temp.style.opacity="0";document.body.append(temp);temp.select();
+   const copied=document.execCommand("copy");temp.remove();if(!copied)throw new Error("Copy is not supported by this browser.");
+  }
+  feedback.textContent="School ID copied. Share it with your teachers.";
+ }catch(e){feedback.textContent="Copy failed. Please select and copy the School ID manually.";console.error(e);}
+}
+$("copySchoolId")?.addEventListener("click",copySchoolId);
+
 async function load(userObj){const snap=await getDoc(doc(db,"registrars",userObj.uid));if(!snap.exists()){profile=null;view("setup");return}profile={uid:userObj.uid,...snap.data()};if(!profile.schoolId){view("setup");return}const ss=await getDoc(doc(db,"schools",profile.schoolId));if(!ss.exists()){msg("The school record could not be found. Please contact support.","error");view("setup");return}render({id:ss.id,...ss.data()})}
 async function refreshTeacherConnections(){
  const box=$("teacherConnectionList"),status=$("teacherConnectionsMessage");if(!box||!profile?.schoolId)return;
