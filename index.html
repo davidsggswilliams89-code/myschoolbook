@@ -3390,6 +3390,9 @@ renderCurriculum();renderStudents();renderResults();
     if(cls && formCls) formCls.value=cls.value;
   }
 
+  // Expose the student-view refresh helper to the Firebase module.
+  window.refreshStudentViews=refreshStudentViews;
+
   window.updateDashboardStudentCount=function(){
     var count=visibleStudentRecords().length;
     document.querySelectorAll(".stats .stat").forEach(function(card){
