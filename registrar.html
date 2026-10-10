@@ -73,6 +73,21 @@ async function copySchoolId(){
 $("copySchoolId")?.addEventListener("click",copySchoolId);
 
 async function load(userObj){const snap=await getDoc(doc(db,"registrars",userObj.uid));if(!snap.exists()){profile=null;view("setup");return}profile={uid:userObj.uid,...snap.data()};if(!profile.schoolId){view("setup");return}const ss=await getDoc(doc(db,"schools",profile.schoolId));if(!ss.exists()){msg("The school record could not be found. Please contact support.","error");view("setup");return}render({id:ss.id,...ss.data()})}
+const SUBJECT_OPTIONS=["English Studies","Mathematics","Basic Science and Technology","National Values Education","Pre-Vocational Studies","Religion and National Values","Physical and Health Education","Cultural and Creative Arts","Nigerian Languages","Computer Studies","Social Studies","Agricultural Science"];
+function createAssignmentEditor(initial=[]){
+ const wrap=document.createElement("div");wrap.style.cssText="width:100%;display:grid;gap:10px;margin:10px 0";
+ const rows=document.createElement("div");rows.style.cssText="display:grid;gap:8px";wrap.append(rows);
+ function addRow(value={}){
+  const row=document.createElement("div");row.style.cssText="display:grid;grid-template-columns:minmax(110px,1fr) minmax(150px,1.4fr) auto;gap:7px;align-items:center;padding:10px;background:#f5faf6;border:1px solid var(--line);border-radius:10px";
+  const cls=document.createElement("select");cls.setAttribute("aria-label","Class");cls.style.cssText="width:100%;min-width:0;padding:10px;border:1px solid #cbd8cf;border-radius:8px;font:inherit";cls.innerHTML='<option value="">Select class</option>'+[1,2,3,4,5,6].map(n=>`<option value="Primary ${n}">Primary ${n}</option>`).join("");cls.value=value.className||value.class||"";
+  const sub=document.createElement("select");sub.setAttribute("aria-label","Subject");sub.style.cssText="width:100%;min-width:0;padding:10px;border:1px solid #cbd8cf;border-radius:8px;font:inherit";sub.innerHTML='<option value="">Select subject</option>'+SUBJECT_OPTIONS.map(x=>`<option value="${x}">${x}</option>`).join("");sub.value=value.subject||"";
+  const remove=document.createElement("button");remove.type="button";remove.className="secondary";remove.textContent="Remove";remove.style.cssText="padding:8px;font-size:13px";remove.onclick=()=>{row.remove();if(!rows.children.length)addRow()};row.append(cls,sub,remove);rows.append(row);
+ }
+ (initial.length?initial:[{}]).forEach(addRow);
+ const add=document.createElement("button");add.type="button";add.className="secondary";add.textContent="+ Add class and subject";add.style.justifySelf="start";add.onclick=()=>addRow();wrap.append(add);
+ const hint=document.createElement("small");hint.className="muted";hint.textContent="Add one row for each class–subject combination. Example: Primary 5 — Mathematics, then add another row for Primary 6 — Basic Science.";wrap.append(hint);
+ return {element:wrap,read(){const result=[];for(const row of rows.children){const selects=row.querySelectorAll('select');const className=selects[0].value,subject=selects[1].value;if(!className&&!subject)continue;if(!className||!subject)throw new Error('For every assignment row, select both a class and a subject.');if(result.some(x=>x.className===className&&x.subject===subject))continue;result.push({className,subject})}if(!result.length)throw new Error('Add at least one class and subject assignment.');return result}};
+}
 async function refreshTeacherConnections(){
  const box=$("teacherConnectionList"),status=$("teacherConnectionsMessage");if(!box||!profile?.schoolId)return;
  status.textContent="Loading connection requests…";box.replaceChildren();
@@ -86,32 +101,32 @@ async function refreshTeacherConnections(){
    const card=document.createElement("div");card.style.cssText="border:1px solid var(--line);border-radius:12px;padding:14px;margin:10px 0;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap";
    if(r.teacherPhoto){const img=document.createElement("img");img.src=r.teacherPhoto;img.alt="Teacher photo";img.style.cssText="width:58px;height:58px;object-fit:cover;border-radius:50%;border:1px solid var(--line)";card.append(img)}
    const info=document.createElement("div");info.style.cssText="flex:1;min-width:180px";const name=document.createElement("strong");name.textContent=r.teacherName||"Teacher";const meta=document.createElement("p");meta.className="muted";meta.style.margin="5px 0";meta.textContent=[r.teacherEmail,r.teacherPhone,"Status: "+(r.status||"unknown")].filter(Boolean).join(" · ");info.append(name,meta);
-   const controls=document.createElement("div");controls.style.cssText="display:flex;gap:8px;flex-wrap:wrap;align-items:center";
-   if(r.status==="pending"){
-    const role=document.createElement("select");role.innerHTML='<option value="Class Teacher">Class Teacher</option><option value="Subject Teacher">Subject Teacher</option><option value="Primary Teacher">Primary Teacher</option>';
-    const cls=document.createElement("select");cls.multiple=true;cls.title="Select one or more classes";cls.setAttribute("aria-label","Assigned classes");cls.style.cssText="min-width:150px;min-height:88px";cls.innerHTML=[1,2,3,4,5,6].map(n=>`<option value="Primary ${n}">Primary ${n}</option>`).join("");
-    const subjects=document.createElement("select");subjects.multiple=true;subjects.title="Select one or more subjects";subjects.setAttribute("aria-label","Assigned subjects");subjects.style.cssText="min-width:180px;min-height:88px";subjects.innerHTML=["English Studies","Mathematics","Basic Science and Technology","National Values Education","Pre-Vocational Studies","Religion and National Values","Physical and Health Education","Cultural and Creative Arts","Nigerian Languages","Computer Studies","Social Studies","Agricultural Science"].map(x=>`<option value="${x}">${x}</option>`).join("");
-    const hint=document.createElement("small");hint.className="muted";hint.textContent="Select classes and subjects (hold Ctrl or use long-press on mobile where supported).";hint.style.flexBasis="100%";
-    const accept=document.createElement("button");accept.className="primary";accept.textContent="Approve & Assign";accept.onclick=()=>decideTeacherConnection(r,"connected",role.value,Array.from(cls.selectedOptions).map(o=>o.value),Array.from(subjects.selectedOptions).map(o=>o.value));
-    const reject=document.createElement("button");reject.className="secondary";reject.textContent="Reject";reject.onclick=()=>decideTeacherConnection(r,"rejected",role.value,[],[]);controls.append(role,cls,subjects,accept,reject,hint);
-   }else if(r.status==="connected"){
-    const assignment=document.createElement("small");assignment.className="muted";assignment.textContent=[r.assignedRole,(r.assignedClasses|| (r.assignedClass?[r.assignedClass]:[])).join(", "),(r.assignedSubjects||[]).join(", ")].filter(Boolean).join(" · ")||"No assignments";
-    const deactivate=document.createElement("button");deactivate.className="secondary";deactivate.textContent="Deactivate";deactivate.onclick=()=>decideTeacherConnection(r,"deactivated",r.assignedRole||"Class Teacher",r.assignedClasses||[],r.assignedSubjects||[]);controls.append(assignment,deactivate);
+   const controls=document.createElement("div");controls.style.cssText="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;min-width:100%;flex-direction:column";
+   if(r.status==="pending"||r.status==="connected"){
+    const role=document.createElement("select");role.setAttribute("aria-label","Teaching role");role.style.cssText="padding:10px;border:1px solid #cbd8cf;border-radius:8px;font:inherit;max-width:100%";role.innerHTML='<option value="Class Teacher">Class Teacher</option><option value="Subject Teacher">Subject Teacher</option><option value="Primary Teacher">Primary Teacher</option>';role.value=r.assignedRole||"Class Teacher";
+    const existing=r.assignedTeachingAssignments||[];
+    const legacy=existing.length?existing:((r.assignedClasses|| (r.assignedClass?[r.assignedClass]:[])).flatMap(c=>(r.assignedSubjects||[]).map(subject=>({className:c,subject}))));
+    const editor=createAssignmentEditor(r.status==="connected"?legacy:[]);controls.append(role,editor.element);
+    const save=document.createElement("button");save.className="primary";save.textContent=r.status==="pending"?"Approve & Save Assignments":"Save Changes";save.onclick=()=>{try{const assignments=editor.read();decideTeacherConnection(r,"connected",role.value,assignments)}catch(e){msg(e.message,"error")}};controls.append(save);
+    if(r.status==="pending"){const reject=document.createElement("button");reject.className="secondary";reject.textContent="Reject";reject.onclick=()=>decideTeacherConnection(r,"rejected",role.value,[]);controls.append(reject)}
+    else {const deactivate=document.createElement("button");deactivate.className="secondary";deactivate.textContent="Deactivate";deactivate.onclick=()=>decideTeacherConnection(r,"deactivated",r.assignedRole||"Class Teacher",[]);controls.append(deactivate)}
+   }else if(r.status==="deactivated"){
+    const label=document.createElement("small");label.className="muted";label.textContent="This teacher connection is deactivated.";controls.append(label);
    }
    card.append(info,controls);box.append(card);
   });
  }catch(e){console.error(e);status.textContent="Could not load requests. Check Firestore security rules for teacherConnectionRequests and schoolTeachers."}
 }
-async function decideTeacherConnection(r,status,assignedRole,assignedClasses=[],assignedSubjects=[]){
- const assignedClass=assignedClasses[0]||"";
+async function decideTeacherConnection(r,status,assignedRole,assignments=[]){
+ const assignedClasses=[...new Set(assignments.map(a=>a.className))];const assignedSubjects=[...new Set(assignments.map(a=>a.subject))];const assignedClass=assignedClasses[0]||"";
  try{
   if(!profile?.schoolId||!user)throw new Error("Registrar or school profile is not ready.");
   const requestRef=doc(db,"teacherConnectionRequests",r.id);
-  await updateDoc(requestRef,{status,assignedRole:status==="connected"?assignedRole:"",assignedClass:status==="connected"?assignedClass:"",assignedClasses:status==="connected"?assignedClasses:[],assignedSubjects:status==="connected"?assignedSubjects:[],reviewedBy:user.uid,updatedAt:serverTimestamp(),...(status==="connected"?{approvedAt:serverTimestamp()}:status==="deactivated"?{deactivatedAt:serverTimestamp(),deactivatedBy:user.uid}:{reviewedAt:serverTimestamp()})});
+  await updateDoc(requestRef,{status,assignedRole:status==="connected"?assignedRole:"",assignedClass:status==="connected"?assignedClass:"",assignedClasses:status==="connected"?assignedClasses:[],assignedSubjects:status==="connected"?assignedSubjects:[],assignedTeachingAssignments:status==="connected"?assignments:[],reviewedBy:user.uid,updatedAt:serverTimestamp(),...(status==="connected"?{approvedAt:r.status==="pending"?serverTimestamp():(r.approvedAt||serverTimestamp())}:status==="deactivated"?{deactivatedAt:serverTimestamp(),deactivatedBy:user.uid}:{reviewedAt:serverTimestamp()})});
   const memberId=profile.schoolId+"_"+r.teacherUid;const memberRef=doc(db,"schoolTeachers",memberId);
-  if(status==="connected")await setDoc(memberRef,{schoolId:profile.schoolId,schoolName:r.schoolName||$("dashboardSchoolName").textContent,registrarUid:user.uid,teacherUid:r.teacherUid,teacherName:r.teacherName||"Teacher",teacherEmail:r.teacherEmail||"",teacherPhoto:r.teacherPhoto||"",status:"connected",assignedRole,assignedClass,assignedClasses,assignedSubjects,connectedAt:serverTimestamp(),updatedAt:serverTimestamp()},{merge:true});
+  if(status==="connected")await setDoc(memberRef,{schoolId:profile.schoolId,schoolName:r.schoolName||$("dashboardSchoolName").textContent,registrarUid:user.uid,teacherUid:r.teacherUid,teacherName:r.teacherName||"Teacher",teacherEmail:r.teacherEmail||"",teacherPhoto:r.teacherPhoto||"",status:"connected",assignedRole,assignedClass,assignedClasses,assignedSubjects,assignedTeachingAssignments:assignments,connectedAt:r.status==="pending"?serverTimestamp():(r.connectedAt||serverTimestamp()),updatedAt:serverTimestamp()},{merge:true});
   else if(status==="deactivated")await setDoc(memberRef,{schoolId:profile.schoolId,teacherUid:r.teacherUid,status:"deactivated",updatedAt:serverTimestamp(),deactivatedAt:serverTimestamp()},{merge:true});
-  msg(status==="connected"?"Teacher connection approved.":status==="rejected"?"Teacher request rejected.":"Teacher connection deactivated.","success");await refreshTeacherConnections();
+  msg(status==="connected"?(r.status==="pending"?"Teacher connection approved and assignments saved.":"Teacher assignments updated successfully."):status==="rejected"?"Teacher request rejected.":"Teacher connection deactivated.","success");await refreshTeacherConnections();
  }catch(e){console.error(e);msg(err(e),"error")}
 }
 $("refreshTeacherConnections")?.addEventListener("click",refreshTeacherConnections);
