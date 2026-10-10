@@ -1377,10 +1377,6 @@ html.teacher-auth-pending #firebaseAuthGate{display:none !important;}
     <span class="navicon">🏫</span>
     <span>My Classes</span>
   </button>
-  <button class="topnav-item" onclick="showExtraSection('myTimetableView',this)">
-    <span class="navicon">📅</span>
-    <span>My Timetable</span>
-  </button>
   <button class="topnav-item" onclick="showExtraSection('examTimetableView',this)">
     <span class="navicon">📝</span>
     <span>Exam Timetable</span>
@@ -1969,16 +1965,8 @@ html.teacher-auth-pending #firebaseAuthGate{display:none !important;}
   <div id="dynamicMyClasses"></div>
 </div>
 
-<div id="myTimetableView" class="section-view" style="display:none">
-  <div class="section-title"><h2>Timetable</h2></div>
-  <!-- Registrar-linked teaching timetable display removed as requested. Hidden compatibility nodes remain for shared timetable code. -->
-  <div style="display:none!important" aria-hidden="true">
-    <div id="teacherTimetableMessage" class="empty"></div>
-    <table><tbody id="teacherTimetableRows"></tbody></table>
-  </div>
-</div>
-
 <div id="examTimetableView" class="section-view" style="display:none">
+  <div style="display:none!important" aria-hidden="true"><div id="teacherTimetableMessage" class="empty"></div><table><tbody id="teacherTimetableRows"></tbody></table></div>
   <div class="section-title"><h2>My Examination Timetable</h2><p>Examination dates, times, venues and invigilation duties matching your approved assignments.</p></div>
   <div class="card"><div class="cardhead"><h3>Assigned Examinations & Invigilation</h3><button type="button" class="mini" onclick="window.loadTeacherTimetables&&window.loadTeacherTimetables()">Refresh</button></div><div id="teacherExamTimetableMessage" class="empty">Checking your school connection…</div><div class="tablewrap"><table><thead><tr><th>Date</th><th>Time</th><th>Class</th><th>Subject</th><th>Venue</th><th>Invigilator / Duty</th><th>Term / Session</th></tr></thead><tbody id="teacherExamTimetableRows"><tr><td colspan="7" class="empty">Loading examination timetable…</td></tr></tbody></table></div></div>
 </div>
@@ -2118,14 +2106,14 @@ function connectAllPages(){
   const requiredSections=[
     "dashboardView","lessonsView","caExamView","studentsView",
     "attendanceView","profileView","subscriptionView","settingsView",
-    "myClassesView","myTimetableView","examTimetableView",
+    "myClassesView","examTimetableView",
     "academicSessionView","holidayView"
   ];
   return requiredSections.every(id=>!!document.getElementById(id));
 }
 
 function showSection(id,el){
-  document.querySelectorAll("#dashboardView,#lessonsView,#caExamView,#studentsView,#attendanceView,#profileView,#assignmentView,#myClassesView,#myTimetableView,#examTimetableView,#academicSessionView,#settingsView,#subscriptionView,#holidayView").forEach(v=>v.style.display="none");
+  document.querySelectorAll("#dashboardView,#lessonsView,#caExamView,#studentsView,#attendanceView,#profileView,#assignmentView,#myClassesView,#examTimetableView,#academicSessionView,#settingsView,#subscriptionView,#holidayView").forEach(v=>v.style.display="none");
   const target=document.getElementById(id);
   if(target) target.style.display="block";
   try{ sessionStorage.setItem("teacherActiveSection",id); }catch(e){}
@@ -2142,8 +2130,8 @@ function closeMoreMenu(){
   if(menu) menu.classList.remove("show");
 }
 function showExtraSection(id,menuButton){
-  if((id==='myTimetableView'||id==='examTimetableView')&&typeof window.loadTeacherTimetables==='function')window.loadTeacherTimetables();
-  document.querySelectorAll("#dashboardView,#lessonsView,#caExamView,#studentsView,#attendanceView,#profileView,#assignmentView,#myClassesView,#myTimetableView,#examTimetableView,#academicSessionView,#settingsView,#subscriptionView,#holidayView").forEach(v=>v.style.display="none");
+  if(id==='examTimetableView'&&typeof window.loadTeacherTimetables==='function')window.loadTeacherTimetables();
+  document.querySelectorAll("#dashboardView,#lessonsView,#caExamView,#studentsView,#attendanceView,#profileView,#assignmentView,#myClassesView,#examTimetableView,#academicSessionView,#settingsView,#subscriptionView,#holidayView").forEach(v=>v.style.display="none");
   const target=document.getElementById(id);
   if(target) target.style.display="block";
   document.querySelectorAll(".more-menu button").forEach(b=>b.classList.remove("active"));
