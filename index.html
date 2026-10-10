@@ -4103,6 +4103,9 @@ window.viewStudentResult=function(index){
 
   window.loadTeacherProfile=function(){
     let data=getData();
+    const authName=(window.firebaseTeacherUser&&window.firebaseTeacherUser.displayName)||localStorage.getItem('firebaseTeacherDisplayName')||'';
+    const identityName=(window.__teacherIdentity&&window.__teacherIdentity.fullName)||'';
+    if(!data.fullName)data.fullName=identityName||authName;
     const map={teacherFullName:'fullName',teacherGender:'gender',teacherPhone:'phone',teacherSchool:'school',teacherRole:'role',teacherQualification:'qualification',teacherSpecialization:'specialization',teacherExperience:'experience',teacherAddress:'address'};
     Object.keys(map).forEach(function(id){if($(id)) $(id).value=data[map[id]]!=null?data[map[id]]:'';});
     setPhoto(data.photo||defaultPhoto);
@@ -4585,7 +4588,15 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
           if(!result?.ok)console.warn("Connected school student list could not be loaded.");
         }
       }
-    }catch(e){console.error(e);showTeacherConnectionStatus('Could not check connection status. Please check Firestore rules and try again.','error');}
+    }catch(e){
+      console.error("Teacher-school connection lookup failed:",e);
+      const code=String(e&&e.code||"");
+      const message=code==="permission-denied"
+        ? "Connection status is blocked by Firestore rules. Allow the signed-in teacher to read their own teacherConnectionRequests record, or check the rules for this collection."
+        : "Could not check connection status"+(e&&e.message?": "+e.message:"")+". Please try Refresh Status again.";
+      showTeacherConnectionStatus(message,"error");
+      if(typeof window.loadTeacherProfile==="function")window.loadTeacherProfile();
+    }
   }
   // Refresh official registrar records whenever a connected teacher opens Students.
   const originalOpenStudents=window.openStudents;
