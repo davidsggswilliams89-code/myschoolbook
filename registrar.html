@@ -20,6 +20,12 @@ button{cursor:pointer;border-radius:9px;padding:11px 15px;font-weight:bold;font:
 .details{display:grid;grid-template-columns:1fr 1fr;gap:12px}.item{border:1px solid var(--line);border-radius:9px;padding:13px;overflow-wrap:anywhere}.item small{display:block;color:var(--muted);margin-bottom:6px}
 ol{line-height:1.8;color:#445248;font-size:14px}footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 @media(max-width:700px){.grid,.details{grid-template-columns:1fr}.stats{grid-template-columns:1fr}.card{padding:17px}header{padding:14px 16px}h1{font-size:16px}}
+/* Comfortable, mobile-friendly class/subject assignment rows */
+.assignment-row{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) auto!important;width:100%;min-width:0}
+.assignment-row select{min-width:0;max-width:100%;}
+.assignment-remove{width:auto!important;min-width:0;max-width:100%;padding:8px 12px!important;white-space:normal;justify-self:start;}
+.assignment-hint{display:block;max-width:100%;overflow-wrap:anywhere;word-break:normal;line-height:1.5;margin:0;}
+@media(max-width:560px){.assignment-row{grid-template-columns:minmax(0,1fr)!important;gap:8px!important;padding:10px!important}.assignment-row select{width:100%;}.assignment-remove{width:auto!important;justify-self:start;}.assignment-hint{font-size:14px;}}
 </style>
 </head>
 <body>
@@ -78,14 +84,14 @@ function createAssignmentEditor(initial=[]){
  const wrap=document.createElement("div");wrap.style.cssText="width:100%;display:grid;gap:10px;margin:10px 0";
  const rows=document.createElement("div");rows.style.cssText="display:grid;gap:8px";wrap.append(rows);
  function addRow(value={}){
-  const row=document.createElement("div");row.style.cssText="display:grid;grid-template-columns:minmax(110px,1fr) minmax(150px,1.4fr) auto;gap:7px;align-items:center;padding:10px;background:#f5faf6;border:1px solid var(--line);border-radius:10px";
+  const row=document.createElement("div");row.className="assignment-row";row.style.cssText="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) auto;gap:7px;align-items:center;padding:10px;background:#f5faf6;border:1px solid var(--line);border-radius:10px;width:100%;min-width:0";
   const cls=document.createElement("select");cls.setAttribute("aria-label","Class");cls.style.cssText="width:100%;min-width:0;padding:10px;border:1px solid #cbd8cf;border-radius:8px;font:inherit";cls.innerHTML='<option value="">Select class</option>'+[1,2,3,4,5,6].map(n=>`<option value="Primary ${n}">Primary ${n}</option>`).join("");cls.value=value.className||value.class||"";
   const sub=document.createElement("select");sub.setAttribute("aria-label","Subject");sub.style.cssText="width:100%;min-width:0;padding:10px;border:1px solid #cbd8cf;border-radius:8px;font:inherit";sub.innerHTML='<option value="">Select subject</option>'+SUBJECT_OPTIONS.map(x=>`<option value="${x}">${x}</option>`).join("");sub.value=value.subject||"";
-  const remove=document.createElement("button");remove.type="button";remove.className="secondary";remove.textContent="Remove";remove.style.cssText="padding:8px;font-size:13px";remove.onclick=()=>{row.remove();if(!rows.children.length)addRow()};row.append(cls,sub,remove);rows.append(row);
+  const remove=document.createElement("button");remove.type="button";remove.className="secondary assignment-remove";remove.textContent="Remove";remove.style.cssText="padding:8px 12px;font-size:13px;width:auto;white-space:normal";remove.onclick=()=>{row.remove();if(!rows.children.length)addRow()};row.append(cls,sub,remove);rows.append(row);
  }
  (initial.length?initial:[{}]).forEach(addRow);
  const add=document.createElement("button");add.type="button";add.className="secondary";add.textContent="+ Add class and subject";add.style.justifySelf="start";add.onclick=()=>addRow();wrap.append(add);
- const hint=document.createElement("small");hint.className="muted";hint.textContent="Add one row for each class–subject combination. Example: Primary 5 — Mathematics, then add another row for Primary 6 — Basic Science.";wrap.append(hint);
+ const hint=document.createElement("small");hint.className="muted assignment-hint";hint.textContent="Add one row for each class–subject combination. Example: Primary 5 — Mathematics, then add another row for Primary 6 — Basic Science.";wrap.append(hint);
  return {element:wrap,read(){const result=[];for(const row of rows.children){const selects=row.querySelectorAll('select');const className=selects[0].value,subject=selects[1].value;if(!className&&!subject)continue;if(!className||!subject)throw new Error('For every assignment row, select both a class and a subject.');if(result.some(x=>x.className===className&&x.subject===subject))continue;result.push({className,subject})}if(!result.length)throw new Error('Add at least one class and subject assignment.');return result}};
 }
 async function refreshTeacherConnections(){
