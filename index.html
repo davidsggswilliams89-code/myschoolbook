@@ -1505,7 +1505,7 @@ html.teacher-auth-pending #firebaseAuthGate{display:none !important;}
         <option value="">Select Subject</option>
         <option>English Studies</option>
         <option>Mathematics</option>
-        <option>Basic Science &amp; Technology</option>
+        <option selected>Basic Science &amp; Technology</option>
         <option>Social Studies</option>
         <option>Civic Education</option>
         <option>Computer Studies</option>
@@ -1527,14 +1527,14 @@ html.teacher-auth-pending #firebaseAuthGate{display:none !important;}
 
     <div class="library-filter">
       <label>CLASS</label>
-      <select id="lessonLibraryClass" onchange="updateLessonLibrary()">
+      <select id="lessonLibraryClass" onchange="applyCurriculumSelection()">
         <option>Primary 1</option><option>Primary 2</option><option>Primary 3</option><option>Primary 4</option><option selected>Primary 5</option><option>Primary 6</option>
       </select>
     </div>
 
     <div class="library-filter">
       <label>TERM</label>
-      <select id="lessonLibraryTerm" onchange="updateLessonLibrary()">
+      <select id="lessonLibraryTerm" onchange="applyCurriculumSelection()">
         <option selected>First Term</option><option>Second Term</option><option>Third Term</option>
       </select>
     </div>
@@ -1586,10 +1586,10 @@ html.teacher-auth-pending #firebaseAuthGate{display:none !important;}
 <div id="studentsView" class="section-view" style="display:none">
   <div class="section-title">
     <h2>Students</h2>
-    <p id="studentSectionDescription">Manage and view your students.</p>
+    <p>Add, manage and view students. Added students will appear in C.A, Examination and Results.</p>
   </div>
 
-  <div class="student-form-card" id="teacherAddStudentCard">
+  <div class="student-form-card">
     <div class="cardhead">
       <h3>➕ Add New Student</h3>
       <span class="status-pill current">Firebase Student Registration</span>
@@ -1621,13 +1621,7 @@ html.teacher-auth-pending #firebaseAuthGate{display:none !important;}
     </form>
   </div>
 
-  <div id="officialStudentClassFilterWrap" style="display:none;margin:0 0 12px;padding:12px;border:1px solid #cfe4dd;border-radius:10px;background:#f3faf7;">
-  <label for="officialStudentClassFilter" style="display:block;font-weight:700;margin-bottom:6px;">Filter students by assigned class</label>
-  <select id="officialStudentClassFilter" style="width:100%;padding:12px;border:1px solid #cbd5d1;border-radius:8px;background:#fff;">
-    <option value="">All assigned classes</option>
-  </select>
-</div>
-<div id="studentFirebaseSourceNote" style="margin:0 0 12px;padding:10px 12px;border:1px solid #cfe4dd;border-radius:10px;background:#f3faf7;color:#35505f;font-size:12px;font-weight:700;">
+  <div id="studentFirebaseSourceNote" style="margin:0 0 12px;padding:10px 12px;border:1px solid #cfe4dd;border-radius:10px;background:#f3faf7;color:#35505f;font-size:12px;font-weight:700;">
   🔥 Student records are loaded directly from Firebase for the signed-in teacher. No pre-filled student records are used.
 </div>
 <div class="student-list">
@@ -2303,33 +2297,6 @@ function teacherAssignedClasses(){
  const legacy=Array.isArray(record.assignedClasses)?record.assignedClasses:(record.assignedClass?[record.assignedClass]:[]);
  return [...new Set(fromPairs.length?fromPairs:legacy)];
 }
-window.teacherIsSchoolConnected=teacherIsSchoolConnected;
-window.teacherAssignedClasses=teacherAssignedClasses;
-function syncConnectedStudentUI(){
- const connected=teacherIsSchoolConnected();
- const addCard=document.getElementById("teacherAddStudentCard");
- const desc=document.getElementById("studentSectionDescription");
- const filterWrap=document.getElementById("officialStudentClassFilterWrap");
- const filter=document.getElementById("officialStudentClassFilter");
- if(addCard)addCard.style.display=connected?"none":"";
- if(desc)desc.textContent=connected
-   ?"Official students registered by your school registrar. You can view students only in your assigned classes."
-   :"Add, manage and view your students. Added students will appear in C.A, Examination and Results.";
- if(filterWrap)filterWrap.style.display=connected?"":"none";
- if(filter&&connected){
-   const allowed=teacherAssignedClasses();
-   const previous=filter.value;
-   filter.replaceChildren();
-   filter.add(new Option("All assigned classes",""));
-   allowed.forEach(c=>filter.add(new Option(c,c)));
-   if(allowed.includes(previous))filter.value=previous;else filter.value="";
- }
-}
-window.syncConnectedStudentUI=syncConnectedStudentUI;
-document.getElementById("officialStudentClassFilter")?.addEventListener("change",function(){
- if(typeof window.renderStudents==="function")window.renderStudents();
-});
-
 function teacherAssignedSubjectsForClass(cls){
  const pairs=teacherAssignedPairs().filter(a=>(a.className||a.class)===cls).map(a=>a.subject).filter(Boolean);
  if(pairs.length)return [...new Set(pairs)];
@@ -2471,20 +2438,12 @@ window.loadStudentsFromFirestore=async function(){
    // Connected teachers must use the registrar's official school register.
    const connection=window.activeTeacherConnection||null;
    if(connection&&["connected","approved","active"].includes(String(connection.status||"").toLowerCase())&&connection.schoolId){
+     const schoolSnap=await window.firebaseFirestoreFns.getDocs(
+       window.firebaseFirestoreFns.collection(db,"schools",connection.schoolId,"students")
+     );
      const allowed=teacherAssignedClasses();
      const pairClasses=[...new Set(teacherAssignedPairs().map(a=>a.className||a.class).filter(Boolean))];
      const classes=pairClasses.length?pairClasses:allowed;
-     if(!classes.length){
-       throw new Error("Your school connection is active, but the registrar has not assigned any classes yet.");
-     }
-     // Firestore security rules do not filter documents after a query. Constrain the
-     // query itself to assigned classes so it can satisfy school student-list rules.
-     const schoolStudentsRef=window.firebaseFirestoreFns.collection(db,"schools",connection.schoolId,"students");
-     const schoolStudentsQuery=window.firebaseFirestoreFns.query(
-       schoolStudentsRef,
-       window.firebaseFirestoreFns.where("className","in",classes.slice(0,10))
-     );
-     const schoolSnap=await window.firebaseFirestoreFns.getDocs(schoolStudentsQuery);
      students=schoolSnap.docs.map(function(d){
        const x=d.data()||{};
        return [
@@ -2501,7 +2460,6 @@ window.loadStudentsFromFirestore=async function(){
        return classes.includes(cls);
      });
      applyAssignedClassFilters();
-     if(typeof window.syncConnectedStudentUI==="function")window.syncConnectedStudentUI();
      refreshStudentViews();
      if(typeof window.renderAttendance==="function")window.renderAttendance();
      const sourceNote=document.getElementById("studentFirebaseSourceNote");
@@ -2553,22 +2511,17 @@ window.loadStudentsFromFirestore=async function(){
    return {ok:true,count:students.length};
  }catch(err){
    console.error("Student Firebase query failed:",err);
-   // A connected teacher must never see their separate personal list as the school's official register.
-   if(teacherIsSchoolConnected())students=[];
-   if(typeof window.refreshStudentViews==="function")window.refreshStudentViews();
-   if(typeof window.renderAttendance==="function")window.renderAttendance();
+   // Do not convert a Firebase read failure into an empty student database.
+   refreshStudentViews();
+   if(typeof window.renderAttendance==="function") window.renderAttendance();
 
    const sourceNote=document.getElementById("studentFirebaseSourceNote");
    if(sourceNote){
-     sourceNote.textContent=(teacherIsSchoolConnected()
-       ? "Official school student list could not load: "
-       : "Firebase student loading failed: ")+(err&&err.message?err.message:"Check Firestore rules and try again.");
-     sourceNote.style.display="";
-     sourceNote.style.background="#fff1f2";
-     sourceNote.style.borderColor="#fecdd3";
-     sourceNote.style.color="#9f1239";
+     sourceNote.textContent='';
+     sourceNote.style.display='none';
    }
-   return {ok:false,count:students.length,source:teacherIsSchoolConnected()?"school-register-error":"current",error:err&&err.message||String(err)};
+   // Keep the existing student data visible instead of replacing the list with zero.
+   return {ok:false,count:students.length,source:"current"};
  }
 };
 
@@ -2742,22 +2695,7 @@ function renderCurriculum(){
 function renderStudents(){
  const body=document.querySelector("#studentsBody");
  if(!body) return;
- const connected=typeof teacherIsSchoolConnected==="function"&&teacherIsSchoolConnected();
- const filter=document.getElementById("officialStudentClassFilter");
- const selectedClass=connected?(filter?.value||""):"";
- const visible=students.map((s,index)=>({s,index})).filter(x=>{
-   if(!connected)return true;
-   const info=studentInfo(x.s);
-   const assigned=teacherAssignedClasses();
-   return assigned.includes(info.className)&&(!selectedClass||info.className===selectedClass);
- });
- body.innerHTML=visible.map((x,n)=>{
-   const s=x.s,info=studentInfo(s);
-   const photo=info.photo?`<img src="${String(info.photo).replace(/"/g,"&quot;")}" alt="Student photo" style="width:42px;height:52px;object-fit:cover;border-radius:6px">`:"—";
-   return `<tr><td>${n+1}</td><td>${photo}</td><td>${s[0]||""}</td><td>${s[1]||""}</td><td>${s[2]||""}</td><td>${info.className||""}</td><td><button class="btn blue" onclick="viewStudentResult(${x.index})">View</button></td></tr>`;
- }).join("");
- const count=document.getElementById("studentCount");
- if(count)count.textContent=visible.length+" Student"+(visible.length===1?"":"s");
+ body.innerHTML=students.map((s,i)=>`<tr><td>${i+1}</td><td>${s[0]}</td><td>${s[1]}</td><td>${s[2]}</td><td><button class="btn blue" onclick="viewStudentResult(${i})">View</button></td></tr>`).join("");
 }
 function viewStudentResult(i){
  currentStudentIndex=i;
@@ -2896,6 +2834,35 @@ function getActiveLessonData(type="Lesson Plan"){
       assignment:savedLesson.assignment||''
     };
   }
+  // Primary 5 currently has complete lesson notes for Weeks 1–10 but no separate
+  // lessonPlans array. Build the matching lesson-plan fields from that same week's note
+  // so the Lesson Plan button uses the curriculum source rather than unrelated defaults.
+  if(type!=='Lesson Note' && activeRecord){
+    const note=(activeRecord.lessonNotes||[]).find(function(item){
+      return Number(item.week)===weekNumber && Number(item.period)===periodNumber;
+    });
+    if(note){
+      const points=Array.isArray(note.keyPoints)?note.keyPoints:[];
+      const objectives=points.map(function(point,i){return (i+1)+'. Pupils should be able to '+String(point).replace(/[.!?]+$/,'').toLowerCase()+'.';}).join('\n');
+      const summary=note.summary||note.introduction||('Explain '+(note.subtopic||selectedLesson.subtopic)+'.');
+      return {
+        topic:selectedLesson.topic,
+        subtopic:note.subtopic||selectedLesson.subtopic,
+        objectives:objectives||('1. Pupils should understand '+(note.subtopic||selectedLesson.subtopic)+'.'),
+        previous:'Pupils’ previous knowledge of '+selectedLesson.topic+' and related everyday experiences.',
+        materials:'Basic Science & Technology textbook, board and marker/chalk, relevant pictures or safe teaching materials.',
+        reference:selectedClass+' '+selectedTerm+' '+(activeRecord.subject||selectedSubject)+' curriculum.',
+        entry:note.introduction||'Ask pupils questions related to the topic and allow them to share what they know.',
+        method:'Explanation, discussion, questioning and guided participation.',
+        presentation:'Step 1: Introduce '+(note.subtopic||selectedLesson.subtopic)+'.\nStep 2: Explain the main ideas using examples and teaching materials.\nStep 3: Ask pupils questions and guide them through the key points.\nStep 4: Summarise the lesson and correct misconceptions.\n\nKey lesson content: '+summary,
+        teacher:'Introduce and explain the topic, use relevant examples, ask questions, guide the activity and correct pupils’ answers.',
+        pupils:'Listen, observe, answer questions, participate in discussion and write the important points.',
+        evaluation:(note.evaluation||[]).map(function(q,i){return (i+1)+'. '+q;}).join('\n')||'Ask pupils to explain the main points taught.',
+        conclusion:note.summary||'Revise the key points with the pupils.',
+        assignment:note.assignment||'Write a short summary of the lesson and answer questions on the topic.'
+      };
+    }
+  }
   if(selectedLesson.topic==="Environmental Change" && selectedLesson.periodIndex===0 && selectedClass==='Primary 5'){
     return {...lessonData,topic:selectedLesson.topic,subtopic:selectedLesson.subtopic};
   }
@@ -2958,7 +2925,7 @@ function lessonForm(type,index=0){
   return `<div class="lesson-note">
     <div class="note-box">
       <b>📖 Complete Nigerian Primary School Lesson Note</b>
-      <p style="margin:5px 0 0">Detailed teaching content for use during the actual lesson. The curriculum topic/sub-topic is taken from the project's Primary 5 First Term Basic Science & Technology curriculum.</p>
+      <p style="margin:5px 0 0">Detailed teaching content for use during the actual lesson. The curriculum topic/sub-topic and lesson material are loaded for the selected class, subject and term.</p>
     </div>
 
     <h4>1. Lesson Information</h4>
@@ -3452,9 +3419,6 @@ renderCurriculum();renderStudents();renderResults();
     if(cls && formCls) formCls.value=cls.value;
   }
 
-  // Expose the student-view refresh helper to the Firebase module.
-  window.refreshStudentViews=refreshStudentViews;
-
   window.updateDashboardStudentCount=function(){
     var count=visibleStudentRecords().length;
     document.querySelectorAll(".stats .stat").forEach(function(card){
@@ -3477,31 +3441,6 @@ renderCurriculum();renderStudents();renderResults();
    return '<tr><td>'+(i+1)+'</td><td>'+photo+'</td><td>'+s[0]+'</td><td>'+s[1]+'</td><td>'+s[2]+'</td><td>'+info.className+'</td><td><button class="btn blue" onclick="viewStudentResult('+item.index+')">View</button> <button class="btn green" onclick="editStudent('+item.index+')">Edit</button> <button class="btn red" onclick="deleteStudent('+item.index+')">Delete</button></td></tr>';
  }).join("") || '<tr><td colspan="7" class="empty">No students have been added to '+selectedDashboardClass()+' yet.</td></tr>';
 };
-
-// Final student renderer: connected teachers see only the selected assigned class and can view only.
-window.renderStudents=function(){
- const body=document.getElementById("studentsBody");if(!body)return;
- const connected=typeof teacherIsSchoolConnected==="function"&&teacherIsSchoolConnected();
- const filter=document.getElementById("officialStudentClassFilter");
- const selected=connected?(filter?.value||""):"";
- const assigned=connected?teacherAssignedClasses():[];
- const records=students.map((s,index)=>({s,index})).filter(x=>{
-   if(!connected)return true;
-   const cls=studentInfo(x.s).className;
-   return assigned.includes(cls)&&(!selected||cls===selected);
- });
- body.innerHTML=records.map((x,n)=>{
-   const s=x.s,info=studentInfo(s);
-   const photo=info.photo?'<img src="'+String(info.photo).replace(/"/g,'&quot;')+'" alt="Student photo" style="width:42px;height:52px;object-fit:cover;border-radius:6px">':'—';
-   const actions=connected
-     ?'<button class="btn blue" onclick="viewStudentResult('+x.index+')">View</button>'
-     :'<button class="btn blue" onclick="viewStudentResult('+x.index+')">View</button> <button class="btn green" onclick="editStudent('+x.index+')">Edit</button> <button class="btn red" onclick="deleteStudent('+x.index+')">Delete</button>';
-   return '<tr><td>'+(n+1)+'</td><td>'+photo+'</td><td>'+(s[0]||'')+'</td><td>'+(s[1]||'')+'</td><td>'+(s[2]||'')+'</td><td>'+(info.className||'')+'</td><td>'+actions+'</td></tr>';
- }).join("")||'<tr><td colspan="7" class="empty">No students found for '+(selected||"your assigned classes")+'.</td></tr>';
- const count=document.getElementById("studentCount");
- if(count)count.textContent=records.length+" Student"+(records.length===1?"":"s");
-};
-window.renderStudents=window.renderStudents;
 
 var studentSaveInProgress=false;
 
@@ -4659,128 +4598,34 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
     const el=document.getElementById('teacherSchoolConnectionStatus');if(!el)return;
     el.textContent=text;el.style.background=type==='success'?'#dcfce7':type==='error'?'#fee2e2':'#fff';el.style.color=type==='success'?'#166534':type==='error'?'#991b1b':'#334155';
   }
-  async function loadConnectedSchoolAcademicInfo(){
-    const rec=window.activeTeacherConnection||activeTeacherConnection;
-    if(!rec?.schoolId)return;
-    const dbFns=window.firebaseFirestoreFns||{};
-    const getDocFn=typeof getDoc==='function'?getDoc:dbFns.getDoc;
-    const docFn=typeof doc==='function'?doc:dbFns.doc;
-    if(!getDocFn||!docFn)return;
-    const snap=await getDocFn(docFn(db,'schools',rec.schoolId));
-    if(!snap.exists())return;
-    const school=snap.data()||{},ac=school.academicCalendar||{},dates=school.termDates||ac.termDates||{};
-    const root=document.getElementById('academicSessionView');if(!root)return;
-    const infoCards=root.querySelectorAll('.extra-grid .info-card');
-    const session=school.academicSession||ac.session||'Not set by school';
-    const term=school.currentTerm||ac.currentTerm||'Not set by school';
-    const status=school.currentStatus||ac.currentStatus||'Not set by school';
-    if(infoCards[0]){
-      const p=infoCards[0].querySelectorAll('p');
-      if(p[0])p[0].innerHTML='<b>Session:</b> '+escapeAcademicText(session);
-      if(p[1])p[1].innerHTML='<b>Current Term:</b> '+escapeAcademicText(term);
-      if(p[2])p[2].innerHTML='<b>Current Status:</b> <span class="status-pill current">'+escapeAcademicText(status)+'</span>';
-    }
-    if(infoCards[1]){
-      const h=infoCards[1].querySelector('h3');if(h)h.textContent=term;
-      const p=infoCards[1].querySelectorAll('p');
-      const res=dates.resumption||dates.termStart||'To be set by school';
-      const exam=dates.examination||dates.examStart||'To be set by school';
-      const end=dates.termEnd||dates.closing||'To be set by school';
-      if(p[0])p[0].innerHTML='<b>Resumption:</b> '+escapeAcademicText(res);
-      if(p[1])p[1].innerHTML='<b>Examination:</b> '+escapeAcademicText(exam);
-      if(p[2])p[2].innerHTML='<b>Term Ends:</b> '+escapeAcademicText(end);
-    }
-    const list=root.querySelector('.calendar-list');
-    if(list){
-      list.replaceChildren();
-      const events=Array.isArray(ac.events)?ac.events:[];
-      if(events.length){
-        events.forEach(ev=>{
-          const item=document.createElement('div');item.className='calendar-item';
-          const badge=document.createElement('div');badge.className='calendar-date';
-          badge.textContent=ev.badge||'EVENT';const small=document.createElement('small');small.textContent=ev.badgeLabel||'';badge.append(small);
-          const content=document.createElement('div');const title=document.createElement('b');title.textContent=ev.title||'School event';
-          const desc=document.createElement('p');desc.textContent=[ev.date,ev.description].filter(Boolean).join(' · ')||'Date to be entered.';
-          content.append(title,desc);item.append(badge,content);list.append(item);
-        });
-      }else{
-        const defaults=[
-          ['TERM','START',term+' Resumption',dates.resumption||dates.termStart],
-          ['EXAM','START',term+' Examination',dates.examination||dates.examStart],
-          ['TERM','END',term+' Closing',dates.termEnd||dates.closing]
-        ];
-        defaults.forEach(([badge,label,title,date])=>{const item=document.createElement('div');item.className='calendar-item';const b=document.createElement('div');b.className='calendar-date';b.textContent=badge;const sm=document.createElement('small');sm.textContent=label;b.append(sm);const c=document.createElement('div');const t=document.createElement('b');t.textContent=title;const p=document.createElement('p');p.textContent=date||'School date to be entered.';c.append(t,p);item.append(b,c);list.append(item);});
-      }
-    }
-    const holidayCard=[...root.querySelectorAll('.card')].find(c=>c.querySelector('.cardhead h3')?.textContent.trim()==='Public Holidays');
-    if(holidayCard){
-      const existing=holidayCard.querySelector('.empty');const holidays=Array.isArray(school.publicHolidays)?school.publicHolidays:(Array.isArray(ac.publicHolidays)?ac.publicHolidays:[]);
-      const wrap=document.createElement('div');wrap.className='calendar-list';wrap.style.padding='12px';
-      if(holidays.length){holidays.forEach(h=>{const row=document.createElement('div');row.className='calendar-item';const badge=document.createElement('div');badge.className='calendar-date';badge.textContent='HOLIDAY';const c=document.createElement('div');const title=document.createElement('b');title.textContent=h.name||h.title||'Public holiday';const p=document.createElement('p');p.textContent=h.date||h.dateText||'Date not set';c.append(title,p);row.append(badge,c);wrap.append(row);});}
-      else{const empty=document.createElement('div');empty.className='empty';empty.textContent='Public holiday dates will appear here when entered by the school.';wrap.append(empty);}
-      if(existing)existing.replaceWith(wrap);else{const old=holidayCard.querySelector('.calendar-list');if(old)old.replaceWith(wrap);else holidayCard.append(wrap);}
-    }
-  }
-  function escapeAcademicText(value){return String(value??'').replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));}
   async function refreshTeacherSchoolConnection(){
-    const user=auth.currentUser;
-    if(!user)return;
-    let requestError=null;
     try{
+      const user=auth.currentUser;if(!user)return;
       const qs=await getDocs(query(collection(db,'teacherConnectionRequests'),where('teacherUid','==',user.uid)));
-      const records=qs.docs.map(d=>({id:d.id,...d.data()}))
-        .sort((a,b)=>(b.updatedAt?.seconds||b.requestedAt?.seconds||0)-(a.updatedAt?.seconds||a.requestedAt?.seconds||0));
-      const connected=records.find(r=>String(r.status||'').toLowerCase()==='connected');
-      const selected=connected||records[0];
-      if(selected){
-        activeTeacherConnection=selected;window.activeTeacherConnection=selected;
-      }
-    }catch(e){requestError=e;console.warn("Could not read teacher connection requests; trying school membership.",e);}
-    // The approved schoolTeachers membership is the authoritative fallback.
-    if(!activeTeacherConnection||String(activeTeacherConnection.status||'').toLowerCase()!=='connected'){
-      try{
-        const memberships=await getDocs(query(collection(db,'schoolTeachers'),where('teacherUid','==',user.uid)));
-        const connectedMemberships=memberships.docs.map(d=>({id:d.id,...d.data()}))
-          .filter(r=>String(r.status||'').toLowerCase()==='connected'&&r.schoolId)
-          .sort((a,b)=>(b.updatedAt?.seconds||b.connectedAt?.seconds||0)-(a.updatedAt?.seconds||a.connectedAt?.seconds||0));
-        if(connectedMemberships.length){
-          const member=connectedMemberships[0];
-          activeTeacherConnection={...member,id:member.id,status:'connected'};
-          window.activeTeacherConnection=activeTeacherConnection;
-        }
-      }catch(e){console.error("Teacher membership lookup failed:",e);if(!requestError)requestError=e;}
-    }
-    const r=activeTeacherConnection;
-    if(!r){
-      window.activeTeacherConnection=null;
-      renderTeacherAssignments(null);
-      const schoolInput=document.getElementById('teacherSchool');if(schoolInput)schoolInput.readOnly=false;
-      if(requestError){
-        const code=String(requestError.code||'');
-        showTeacherConnectionStatus(code==='permission-denied'
-          ?'Could not read your school connection. Check read access to your own teacherConnectionRequests and schoolTeachers membership records.'
-          :'Could not check connection status: '+(requestError.message||'Please try Refresh Status again.'),'error');
-      }else showTeacherConnectionStatus('Not connected to a school yet. Enter the School ID above to send a request.');
-      return;
-    }
-    renderTeacherAssignments(r);
-    if(typeof window.syncConnectedStudentUI==="function")window.syncConnectedStudentUI();
-    const schoolInput=document.getElementById('teacherSchool');
-    if(schoolInput){schoolInput.readOnly=String(r.status).toLowerCase()==='connected';if(r.status==='connected')schoolInput.value=r.schoolName||schoolInput.value;schoolInput.title=r.status==='connected'?'Official school name is managed by the registrar.':'Enter your school name';}
-    if(r.status==='connected'){
-      showTeacherConnectionStatus(`Connected to ${r.schoolName||'your school'} · School ID: ${r.schoolId}${r.assignedClasses?.length?' · Classes: '+r.assignedClasses.join(', '):r.assignedClass?' · Class: '+r.assignedClass:''}${r.assignedRole?' · Role: '+r.assignedRole:''}`,'success');
-      applyAssignedClassFilters();
-      try{
+      if(qs.empty){activeTeacherConnection=null;window.activeTeacherConnection=null;renderTeacherAssignments(null);const schoolInput=document.getElementById('teacherSchool');if(schoolInput)schoolInput.readOnly=false;showTeacherConnectionStatus('Not connected to a school yet. Enter the School ID above to send a request.');return;}
+      const records=qs.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.updatedAt?.seconds||b.requestedAt?.seconds||0)-(a.updatedAt?.seconds||a.requestedAt?.seconds||0));
+      const r=records[0];activeTeacherConnection=r;window.activeTeacherConnection=r;renderTeacherAssignments(r);const schoolInput=document.getElementById('teacherSchool');if(schoolInput){schoolInput.readOnly=r.status==='connected';if(r.status==='connected')schoolInput.value=r.schoolName||schoolInput.value;schoolInput.title=r.status==='connected'?'Official school name is managed by the registrar.':'Enter your school name';}
+      if(r.status==='connected')showTeacherConnectionStatus(`Connected to ${r.schoolName||'your school'} · School ID: ${r.schoolId}${r.assignedClass?' · Class: '+r.assignedClass:''}${r.assignedRole?' · Role: '+r.assignedRole:''}`,'success');
+      else if(r.status==='pending')showTeacherConnectionStatus(`Connection request pending approval for ${r.schoolName||'the school'} · School ID: ${r.schoolId}`);
+      else if(r.status==='deactivated')showTeacherConnectionStatus(`Your connection to ${r.schoolName||'the school'} has been deactivated. Contact the registrar or request a new connection.`,'error');
+      else if(r.status==='rejected')showTeacherConnectionStatus(`Your request to ${r.schoolName||'the school'} was not approved. You may submit a new request if appropriate.`,'error');
+      else showTeacherConnectionStatus('No active school connection. Enter a School ID to request connection.');
+      if(r.status==="connected"){
+        applyAssignedClassFilters();
         if(typeof window.loadStudentsFromFirestore==="function"){
           const result=await window.loadStudentsFromFirestore();
           if(!result?.ok)console.warn("Connected school student list could not be loaded.");
         }
-      }catch(e){console.warn("Official school student list could not be loaded.",e);}
-      try{await loadConnectedSchoolAcademicInfo();}catch(e){console.warn("Academic session load failed",e);}
-    }else if(r.status==='pending')showTeacherConnectionStatus(`Connection request pending approval for ${r.schoolName||'the school'} · School ID: ${r.schoolId}`);
-    else if(r.status==='deactivated')showTeacherConnectionStatus(`Your connection to ${r.schoolName||'the school'} has been deactivated. Contact the registrar or request a new connection.`,'error');
-    else if(r.status==='rejected')showTeacherConnectionStatus(`Your request to ${r.schoolName||'the school'} was not approved. You may submit a new request if appropriate.`,'error');
-    else showTeacherConnectionStatus('No active school connection. Enter a School ID to request connection.');
+      }
+    }catch(e){
+      console.error("Teacher-school connection lookup failed:",e);
+      const code=String(e&&e.code||"");
+      const message=code==="permission-denied"
+        ? "Connection status is blocked by Firestore rules. Allow the signed-in teacher to read their own teacherConnectionRequests record, or check the rules for this collection."
+        : "Could not check connection status"+(e&&e.message?": "+e.message:"")+". Please try Refresh Status again.";
+      showTeacherConnectionStatus(message,"error");
+      if(typeof window.loadTeacherProfile==="function")window.loadTeacherProfile();
+    }
   }
   // Refresh official registrar records whenever a connected teacher opens Students.
   const originalOpenStudents=window.openStudents;
@@ -4912,35 +4757,3 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
 <style>
 .more-wrap,.more-menu{display:none !important;}
 </style>
-
-
-<script>
-(function(){
-  function connected(){return typeof window.teacherIsSchoolConnected==="function"&&window.teacherIsSchoolConnected();}
-  function assigned(){return typeof window.teacherAssignedClasses==="function"?window.teacherAssignedClasses():[];}
-  window.renderStudents=function(){
-    const body=document.getElementById("studentsBody"); if(!body)return;
-    const isConnected=connected();
-    const filter=document.getElementById("officialStudentClassFilter");
-    const selected=isConnected?(filter?.value||""):"";
-    const allowed=isConnected?assigned():[];
-    const list=(window.students||students||[]);
-    const records=list.map((s,index)=>({s,index})).filter(x=>{
-      if(!isConnected)return true;
-      const cls=studentInfo(x.s).className;
-      return allowed.includes(cls)&&(!selected||cls===selected);
-    });
-    body.innerHTML=records.map((x,n)=>{
-      const s=x.s,info=studentInfo(s);
-      const photo=info.photo?'<img src="'+String(info.photo).replace(/"/g,'&quot;')+'" alt="Student photo" style="width:42px;height:52px;object-fit:cover;border-radius:6px">':'—';
-      const actions=isConnected
-        ?'<button class="btn blue" onclick="viewStudentResult('+x.index+')">View</button>'
-        :'<button class="btn blue" onclick="viewStudentResult('+x.index+')">View</button> <button class="btn green" onclick="editStudent('+x.index+')">Edit</button> <button class="btn red" onclick="deleteStudent('+x.index+')">Delete</button>';
-      return '<tr><td>'+(n+1)+'</td><td>'+photo+'</td><td>'+(s[0]||'')+'</td><td>'+(s[1]||'')+'</td><td>'+(s[2]||'')+'</td><td>'+(info.className||'')+'</td><td>'+actions+'</td></tr>';
-    }).join("")||'<tr><td colspan="7" class="empty">No students found for '+(selected||"your assigned classes")+'.</td></tr>';
-    const count=document.getElementById("studentCount");
-    if(count)count.textContent=records.length+" Student"+(records.length===1?"":"s");
-  };
-  document.getElementById("officialStudentClassFilter")?.addEventListener("change",()=>window.renderStudents());
-})();
-</script>
