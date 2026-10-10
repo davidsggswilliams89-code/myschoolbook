@@ -1289,6 +1289,17 @@ html.teacher-auth-pending #firebaseAuthGate{display:none !important;}
 }
 </style>
 
+<style>
+/* Compact attendance controls, aligned in one tidy row on mobile. */
+.attendance-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px}
+.attendance-toolbar>div:first-child{min-width:0}
+.attendance-toolbar b{font-size:14px;line-height:1.4}
+.attendance-top-controls{display:flex;align-items:end;gap:7px;flex-wrap:nowrap}
+.attendance-filter-label{display:flex;flex-direction:column;align-items:flex-start;gap:4px;font-size:10px}
+.attendance-filter-label select{height:34px;max-width:125px;font-size:12px;padding:0 7px}
+.attendance-toolbar .attendance-refresh{height:34px;min-height:34px;padding:0 10px;font-size:11px;font-weight:800;border-radius:8px;white-space:nowrap;line-height:1}
+@media(max-width:480px){.attendance-toolbar{padding:10px 9px;gap:6px}.attendance-toolbar b{font-size:12px}.attendance-toolbar small{font-size:10px}.attendance-filter-label select{max-width:105px;font-size:11px}.attendance-toolbar .attendance-refresh{padding:0 7px;font-size:10px}}
+</style>
 </head>
 <body>
 <script>
@@ -1965,12 +1976,13 @@ html.teacher-auth-pending #firebaseAuthGate{display:none !important;}
 
 <div id="myTimetableView" class="section-view" style="display:none">
   <div class="section-title"><h2>My Timetable</h2><p></p></div>
-  <div class="card"><div class="cardhead"><h3></h3></div><div id="teacherTimetableMessage" class="empty">Checking your school connection…</div><div class="tablewrap"><table class="schedule-table"><thead><tr><th>Day / Date</th><th>Time</th><th>Class</th><th>Subject</th><th>Venue</th><th>Term / Session</th></tr></thead><tbody id="teacherTimetableRows"><tr><td colspan="6" class="empty">Loading timetable…</td></tr></tbody></table></div></div>
+  <div class="card"><div id="teacherTimetableMessage" class="empty">Checking your school connection…</div><div class="tablewrap"><table class="schedule-table"><thead><tr><th>Day / Date</th><th>Time</th><th>Class</th><th>Subject</th><th>Venue</th><th>Term / Session</th></tr></thead><tbody id="teacherTimetableRows"><tr><td colspan="6" class="empty">Loading timetable…</td></tr></tbody></table></div></div>
 </div>
 
 <div id="examTimetableView" class="section-view" style="display:none">
   <div class="section-title"><h2>My Examination Timetable</h2><p></p></div>
-  <div class="card"><div class="cardhead"><h3></h3></div><div id="teacherExamTimetableMessage" class="empty">Checking your school connection…</div><div class="tablewrap"><table><thead><tr><th>Date</th><th>Time</th><th>Class</th><th>Subject</th><th>Venue</th><th>Invigilator / Duty</th><th>Term / Session</th></tr></thead><tbody id="teacherExamTimetableRows"><tr><td colspan="7" class="empty">Loading examination timetable…</td></tr></tbody></table></div></div>
+  <div class="card"><div class="cardhead"><h3>My Subject Examinations</h3></div><div id="teacherExamTimetableMessage" class="empty">Checking your school connection…</div><div class="tablewrap"><table><thead><tr><th>Date</th><th>Time</th><th>Class</th><th>Subject</th><th>Venue</th><th>Invigilator / Duty</th><th>Term / Session</th></tr></thead><tbody id="teacherExamTimetableRows"><tr><td colspan="7" class="empty">Loading examination timetable…</td></tr></tbody></table></div></div>
+  <div class="card"><div class="cardhead"><h3>Examinations Assigned for Me to Invigilate</h3></div><div class="tablewrap"><table><thead><tr><th>Date</th><th>Time</th><th>Class</th><th>Subject</th><th>Venue</th><th>Duty</th><th>Term / Session</th></tr></thead><tbody id="teacherInvigilationRows"><tr><td colspan="7" class="empty">Loading invigilation duties…</td></tr></tbody></table></div></div>
 </div>
 
 <div id="academicSessionView" class="section-view" style="display:none">
@@ -3764,6 +3776,17 @@ window.viewStudentResult=function(index){
     return y+"-"+m+"-"+day;
   }
   function prettyDate(d){return d.toLocaleDateString(undefined,{day:"2-digit",month:"short"});}
+  function academicWeekNumber(monday){
+    const term=selectedDashboardTerm();
+    let termStart=null;
+    try{
+      const dates=JSON.parse(localStorage.getItem('primaryAcademicTermStarts')||'{}');
+      const raw=dates[term]||dates[String(term).toLowerCase()];
+      if(raw && /^\d{4}-\d{2}-\d{2}$/.test(raw))termStart=mondayOfWeek(new Date(raw+'T12:00:00'));
+    }catch(e){}
+    if(!termStart)return null;
+    return Math.max(1,Math.floor((monday-termStart)/604800000)+1);
+  }
   function studentAttendanceKey(s,date){return (attendanceSelectedClass || selectedDashboardClass())+"|"+selectedDashboardTerm()+"|"+String(s[0])+"|"+date;}
   function dayState(s,date){
     const store=attendanceStore();
@@ -3797,7 +3820,7 @@ window.viewStudentResult=function(index){
     const monday=mondayOfWeek(new Date()), days=[];
     for(let i=0;i<5;i++){const d=new Date(monday);d.setDate(monday.getDate()+i);days.push(d);}
     const label=document.getElementById("attendanceWeekLabel");
-    if(label)label.textContent="Week: "+prettyDate(days[0])+" – "+prettyDate(days[4]);
+    if(label){const week=academicWeekNumber(monday);label.textContent=(week?"Week "+week+" · ":"Week · ")+prettyDate(days[0])+" – "+prettyDate(days[4]);}
     head.innerHTML='<tr><th>PHOTO</th><th>STUDENT NAME</th>'+days.map(function(d,i){return '<th class="attendance-day-head"><span class="attendance-day-name">'+dayNames[i]+'</span><span class="attendance-day-date">'+prettyDate(d)+'</span></th>';}).join("")+'</tr>';
     const records=attendanceStudents();
     if(!records.length){body.innerHTML='<tr><td colspan="7" class="attendance-empty">No students have been added to '+(attendanceSelectedClass || selectedDashboardClass())+' yet.</td></tr>';return;}
@@ -4440,18 +4463,18 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
     return pairs.some(a=>(a.className||a.class)===(entry.className||entry.class)&&(a.subject||'').trim().toLowerCase()===(entry.subject||'').trim().toLowerCase());
   }
   function safeCell(row,value){const td=document.createElement('td');td.textContent=value||'—';row.append(td);return td;}
-  function setTimetableMessage(id,text,isError=false){const el=document.getElementById(id);if(el){el.textContent=text;el.style.color=isError?'#991b1b':'#667085';}}
+  function setTimetableMessage(id,text,isError=false){const el=document.getElementById(id);if(el){el.textContent=isError?text:'';el.style.display=isError?'block':'none';el.style.color=isError?'#991b1b':'#667085';}}
   async function loadTeacherTimetables(){
-    const lessonBody=document.getElementById('teacherTimetableRows'),examBody=document.getElementById('teacherExamTimetableRows');
+    const lessonBody=document.getElementById('teacherTimetableRows'),examBody=document.getElementById('teacherExamTimetableRows'),dutyBody=document.getElementById('teacherInvigilationRows');
     if(!lessonBody||!examBody)return;
     const user=auth.currentUser;
     if(!user){setTimetableMessage('teacherTimetableMessage','Sign in to view your timetable.',true);return;}
     try{
       if(!activeTeacherConnection||activeTeacherConnection.status!=='connected')await refreshTeacherSchoolConnection();
       const rec=activeTeacherConnection;
-      if(!rec||rec.status!=='connected'||!rec.schoolId){setTimetableMessage('teacherTimetableMessage','Connect to your school and wait for registrar approval to view your timetable.');setTimetableMessage('teacherExamTimetableMessage','Your examination timetable will appear after your school connection is approved.');lessonBody.innerHTML='<tr><td colspan="6" class="empty">No approved school connection.</td></tr>';examBody.innerHTML='<tr><td colspan="7" class="empty">No approved school connection.</td></tr>';return;}
+      if(!rec||rec.status!=='connected'||!rec.schoolId){setTimetableMessage('teacherTimetableMessage','Connect to your school and wait for registrar approval to view your timetable.');setTimetableMessage('teacherExamTimetableMessage','Your examination timetable will appear after your school connection is approved.');lessonBody.innerHTML='<tr><td colspan="6" class="empty">No approved school connection.</td></tr>';examBody.innerHTML='<tr><td colspan="7" class="empty">No approved school connection.</td></tr>';if(dutyBody)dutyBody.innerHTML=examBody.innerHTML;return;}
       const pairs=Array.isArray(rec.assignedTeachingAssignments)?rec.assignedTeachingAssignments:[];
-      if(!pairs.length){setTimetableMessage('teacherTimetableMessage','The registrar has not assigned class–subject combinations to your account yet.');setTimetableMessage('teacherExamTimetableMessage','No assigned class–subject combinations are available yet.');lessonBody.innerHTML='<tr><td colspan="6" class="empty">No teaching assignments.</td></tr>';examBody.innerHTML='<tr><td colspan="7" class="empty">No assigned exams.</td></tr>';return;}
+      if(!pairs.length){setTimetableMessage('teacherTimetableMessage','The registrar has not assigned class–subject combinations to your account yet.');setTimetableMessage('teacherExamTimetableMessage','No assigned class–subject combinations are available yet.');lessonBody.innerHTML='<tr><td colspan="6" class="empty">No teaching assignments.</td></tr>';examBody.innerHTML='<tr><td colspan="7" class="empty">No assigned exams.</td></tr>';if(dutyBody)dutyBody.innerHTML=examBody.innerHTML;return;}
       setTimetableMessage('teacherTimetableMessage','Loading your …');setTimetableMessage('teacherExamTimetableMessage','Loading your assigned examination timetable…');
       const lessonRef=collection(db,'schools',rec.schoolId,'timetable');
       const examRef=collection(db,'schools',rec.schoolId,'examTimetable');
@@ -4465,11 +4488,19 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
       if(!lessonRows.length){lessonBody.innerHTML='<tr><td colspan="6" class="empty">No timetable entries match your assigned subjects and classes yet.</td></tr>';}
       else lessonRows.forEach(r=>{const tr=document.createElement('tr');safeCell(tr,[r.day,r.date].filter(Boolean).join(' · '));safeCell(tr,(r.startTime||'')+' – '+(r.endTime||''));safeCell(tr,r.className);safeCell(tr,r.subject);safeCell(tr,r.venue);safeCell(tr,[r.term,r.academicSession].filter(Boolean).join(' · '));lessonBody.append(tr)});
       const examRows=[...new Map([...examByPair,...examByDuty].flatMap(snap=>snap.docs).map(d=>[d.id,{id:d.id,...d.data()}])).values()].filter(r=>teacherHasPair(rec,r)||r.invigilatorUid===user.uid).sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))||String(a.startTime||'').localeCompare(String(b.startTime||'')));
-      examBody.replaceChildren();
-      if(!examRows.length){examBody.innerHTML='<tr><td colspan="7" class="empty">No exam timetable entries match your assigned class and subject yet.</td></tr>';}
-      else examRows.forEach(r=>{const tr=document.createElement('tr');safeCell(tr,r.date);safeCell(tr,(r.startTime||'')+' – '+(r.endTime||''));safeCell(tr,r.className);safeCell(tr,r.subject);safeCell(tr,r.venue);safeCell(tr,r.invigilatorUid===user.uid?'You are assigned as invigilator':(r.invigilatorName||'—'));safeCell(tr,[r.term,r.academicSession].filter(Boolean).join(' · '));examBody.append(tr)});
+      // Keep subject examinations separate from independently assigned invigilation duties.
+      const subjectExams=examRows.filter(r=>teacherHasPair(rec,r));
+      const invigilationExams=examRows.filter(r=>r.invigilatorUid===user.uid);
+      function appendExamRows(target,rows,emptyText){
+        if(!target)return;
+        target.replaceChildren();
+        if(!rows.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=7;td.className='empty';td.textContent=emptyText;tr.append(td);target.append(tr);return;}
+        rows.forEach(r=>{const tr=document.createElement('tr');safeCell(tr,r.date);safeCell(tr,(r.startTime||'')+' – '+(r.endTime||''));safeCell(tr,r.className);safeCell(tr,r.subject);safeCell(tr,r.venue);safeCell(tr,r.invigilatorUid===user.uid?'You are assigned as invigilator':(r.invigilatorName||'—'));safeCell(tr,[r.term,r.academicSession].filter(Boolean).join(' · '));target.append(tr)});
+      }
+      appendExamRows(examBody,subjectExams,'No examinations scheduled for your teaching subjects.');
+      appendExamRows(dutyBody,invigilationExams,'No invigilation duties assigned to you.');
       setTimetableMessage('teacherTimetableMessage',lessonRows.length+' timetable entr'+(lessonRows.length===1?'y':'ies')+' matching your assigned classes and subjects.');setTimetableMessage('teacherExamTimetableMessage',examRows.length+' examination entr'+(examRows.length===1?'y':'ies')+' matching your assignments or invigilation duties.');
-    }catch(e){console.error('Teacher timetable load failed:',e);setTimetableMessage('teacherTimetableMessage','Could not load timetable. Check Firestore rules for the school timetable.',true);setTimetableMessage('teacherExamTimetableMessage','Could not load exam timetable. Check Firestore rules for the school exam timetable.',true);lessonBody.innerHTML='<tr><td colspan="6" class="empty">Timetable unavailable.</td></tr>';examBody.innerHTML='<tr><td colspan="7" class="empty">Exam timetable unavailable.</td></tr>';}
+    }catch(e){console.error('Teacher timetable load failed:',e);setTimetableMessage('teacherTimetableMessage','Could not load timetable. Check Firestore rules for the school timetable.',true);setTimetableMessage('teacherExamTimetableMessage','Could not load exam timetable. Check Firestore rules for the school exam timetable.',true);lessonBody.innerHTML='<tr><td colspan="6" class="empty">Timetable unavailable.</td></tr>';examBody.innerHTML='<tr><td colspan="7" class="empty">Exam timetable unavailable.</td></tr>';if(dutyBody)dutyBody.innerHTML=examBody.innerHTML;}
   }
   window.loadTeacherTimetables=loadTeacherTimetables;
 
