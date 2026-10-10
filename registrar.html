@@ -89,24 +89,27 @@ async function refreshTeacherConnections(){
    const controls=document.createElement("div");controls.style.cssText="display:flex;gap:8px;flex-wrap:wrap;align-items:center";
    if(r.status==="pending"){
     const role=document.createElement("select");role.innerHTML='<option value="Class Teacher">Class Teacher</option><option value="Subject Teacher">Subject Teacher</option><option value="Primary Teacher">Primary Teacher</option>';
-    const cls=document.createElement("select");cls.innerHTML='<option value="">Class not assigned</option>'+[1,2,3,4,5,6].map(n=>`<option value="Primary ${n}">Primary ${n}</option>`).join("");
-    const accept=document.createElement("button");accept.className="primary";accept.textContent="Approve";accept.onclick=()=>decideTeacherConnection(r,"connected",role.value,cls.value);
-    const reject=document.createElement("button");reject.className="secondary";reject.textContent="Reject";reject.onclick=()=>decideTeacherConnection(r,"rejected",role.value,cls.value);controls.append(role,cls,accept,reject);
+    const cls=document.createElement("select");cls.multiple=true;cls.title="Select one or more classes";cls.setAttribute("aria-label","Assigned classes");cls.style.cssText="min-width:150px;min-height:88px";cls.innerHTML=[1,2,3,4,5,6].map(n=>`<option value="Primary ${n}">Primary ${n}</option>`).join("");
+    const subjects=document.createElement("select");subjects.multiple=true;subjects.title="Select one or more subjects";subjects.setAttribute("aria-label","Assigned subjects");subjects.style.cssText="min-width:180px;min-height:88px";subjects.innerHTML=["English Studies","Mathematics","Basic Science and Technology","National Values Education","Pre-Vocational Studies","Religion and National Values","Physical and Health Education","Cultural and Creative Arts","Nigerian Languages","Computer Studies","Social Studies","Agricultural Science"].map(x=>`<option value="${x}">${x}</option>`).join("");
+    const hint=document.createElement("small");hint.className="muted";hint.textContent="Select classes and subjects (hold Ctrl or use long-press on mobile where supported).";hint.style.flexBasis="100%";
+    const accept=document.createElement("button");accept.className="primary";accept.textContent="Approve & Assign";accept.onclick=()=>decideTeacherConnection(r,"connected",role.value,Array.from(cls.selectedOptions).map(o=>o.value),Array.from(subjects.selectedOptions).map(o=>o.value));
+    const reject=document.createElement("button");reject.className="secondary";reject.textContent="Reject";reject.onclick=()=>decideTeacherConnection(r,"rejected",role.value,[],[]);controls.append(role,cls,subjects,accept,reject,hint);
    }else if(r.status==="connected"){
-    const assignment=document.createElement("small");assignment.className="muted";assignment.textContent=[r.assignedRole,r.assignedClass].filter(Boolean).join(" · ")||"No class assigned";
-    const deactivate=document.createElement("button");deactivate.className="secondary";deactivate.textContent="Deactivate";deactivate.onclick=()=>decideTeacherConnection(r,"deactivated",r.assignedRole||"Class Teacher",r.assignedClass||"");controls.append(assignment,deactivate);
+    const assignment=document.createElement("small");assignment.className="muted";assignment.textContent=[r.assignedRole,(r.assignedClasses|| (r.assignedClass?[r.assignedClass]:[])).join(", "),(r.assignedSubjects||[]).join(", ")].filter(Boolean).join(" · ")||"No assignments";
+    const deactivate=document.createElement("button");deactivate.className="secondary";deactivate.textContent="Deactivate";deactivate.onclick=()=>decideTeacherConnection(r,"deactivated",r.assignedRole||"Class Teacher",r.assignedClasses||[],r.assignedSubjects||[]);controls.append(assignment,deactivate);
    }
    card.append(info,controls);box.append(card);
   });
  }catch(e){console.error(e);status.textContent="Could not load requests. Check Firestore security rules for teacherConnectionRequests and schoolTeachers."}
 }
-async function decideTeacherConnection(r,status,assignedRole,assignedClass){
+async function decideTeacherConnection(r,status,assignedRole,assignedClasses=[],assignedSubjects=[]){
+ const assignedClass=assignedClasses[0]||"";
  try{
   if(!profile?.schoolId||!user)throw new Error("Registrar or school profile is not ready.");
   const requestRef=doc(db,"teacherConnectionRequests",r.id);
-  await updateDoc(requestRef,{status,assignedRole:status==="connected"?assignedRole:"",assignedClass:status==="connected"?assignedClass:"",reviewedBy:user.uid,updatedAt:serverTimestamp(),...(status==="connected"?{approvedAt:serverTimestamp()}:status==="deactivated"?{deactivatedAt:serverTimestamp(),deactivatedBy:user.uid}:{reviewedAt:serverTimestamp()})});
+  await updateDoc(requestRef,{status,assignedRole:status==="connected"?assignedRole:"",assignedClass:status==="connected"?assignedClass:"",assignedClasses:status==="connected"?assignedClasses:[],assignedSubjects:status==="connected"?assignedSubjects:[],reviewedBy:user.uid,updatedAt:serverTimestamp(),...(status==="connected"?{approvedAt:serverTimestamp()}:status==="deactivated"?{deactivatedAt:serverTimestamp(),deactivatedBy:user.uid}:{reviewedAt:serverTimestamp()})});
   const memberId=profile.schoolId+"_"+r.teacherUid;const memberRef=doc(db,"schoolTeachers",memberId);
-  if(status==="connected")await setDoc(memberRef,{schoolId:profile.schoolId,schoolName:r.schoolName||$("dashboardSchoolName").textContent,registrarUid:user.uid,teacherUid:r.teacherUid,teacherName:r.teacherName||"Teacher",teacherEmail:r.teacherEmail||"",teacherPhoto:r.teacherPhoto||"",status:"connected",assignedRole,assignedClass,connectedAt:serverTimestamp(),updatedAt:serverTimestamp()},{merge:true});
+  if(status==="connected")await setDoc(memberRef,{schoolId:profile.schoolId,schoolName:r.schoolName||$("dashboardSchoolName").textContent,registrarUid:user.uid,teacherUid:r.teacherUid,teacherName:r.teacherName||"Teacher",teacherEmail:r.teacherEmail||"",teacherPhoto:r.teacherPhoto||"",status:"connected",assignedRole,assignedClass,assignedClasses,assignedSubjects,connectedAt:serverTimestamp(),updatedAt:serverTimestamp()},{merge:true});
   else if(status==="deactivated")await setDoc(memberRef,{schoolId:profile.schoolId,teacherUid:r.teacherUid,status:"deactivated",updatedAt:serverTimestamp(),deactivatedAt:serverTimestamp()},{merge:true});
   msg(status==="connected"?"Teacher connection approved.":status==="rejected"?"Teacher request rejected.":"Teacher connection deactivated.","success");await refreshTeacherConnections();
  }catch(e){console.error(e);msg(err(e),"error")}

@@ -4430,6 +4430,16 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
     const user=auth.currentUser;if(!user)throw new Error('Please sign in as a teacher first.');
     const snap=await getDoc(doc(db,'teachers',user.uid));return snap.exists()?snap.data():{};
   }
+  let activeTeacherConnection=null;
+  function renderTeacherAssignments(record){
+    const box=document.getElementById('dynamicMyClasses');if(!box)return;box.replaceChildren();
+    const classes=record?.assignedClasses?.length?record.assignedClasses:(record?.assignedClass?[record.assignedClass]:[]);
+    const subjects=record?.assignedSubjects||[];
+    if(!record||record.status!=='connected'){const p=document.createElement('p');p.textContent='Your registrar-assigned classes and subjects will appear here after your school connection is approved.';p.style.cssText='padding:16px;background:#f8fafc;border-radius:10px;color:#475569';box.append(p);return;}
+    const heading=document.createElement('p');heading.textContent=`School: ${record.schoolName||'Connected school'} · Role: ${record.assignedRole||'Not assigned'}`;heading.style.cssText='padding:12px;background:#ecfdf5;border-radius:10px;color:#166534;font-weight:700';box.append(heading);
+    if(!classes.length||!subjects.length){const p=document.createElement('p');p.textContent='The registrar has not assigned both classes and subjects yet.';box.append(p);}
+    classes.forEach(cls=>{const card=document.createElement('div');card.style.cssText='border:1px solid #dbeafe;border-radius:10px;padding:14px;margin:10px 0;background:#fff';const h=document.createElement('h3');h.textContent=cls;h.style.margin='0 0 8px';card.append(h);const list=document.createElement('div');list.style.cssText='display:flex;gap:8px;flex-wrap:wrap';(subjects.length?subjects:['No subjects assigned']).forEach(sub=>{const tag=document.createElement('span');tag.textContent=sub;tag.style.cssText='padding:6px 10px;background:#eff6ff;border-radius:20px;font-size:13px';list.append(tag)});card.append(list);box.append(card);});
+  }
   function showTeacherConnectionStatus(text,type='info'){
     const el=document.getElementById('teacherSchoolConnectionStatus');if(!el)return;
     el.textContent=text;el.style.background=type==='success'?'#dcfce7':type==='error'?'#fee2e2':'#fff';el.style.color=type==='success'?'#166534':type==='error'?'#991b1b':'#334155';
@@ -4438,9 +4448,9 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
     try{
       const user=auth.currentUser;if(!user)return;
       const qs=await getDocs(query(collection(db,'teacherConnectionRequests'),where('teacherUid','==',user.uid)));
-      if(qs.empty){showTeacherConnectionStatus('Not connected to a school yet. Enter the School ID above to send a request.');return;}
+      if(qs.empty){activeTeacherConnection=null;renderTeacherAssignments(null);const schoolInput=document.getElementById('teacherSchool');if(schoolInput)schoolInput.readOnly=false;showTeacherConnectionStatus('Not connected to a school yet. Enter the School ID above to send a request.');return;}
       const records=qs.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.updatedAt?.seconds||b.requestedAt?.seconds||0)-(a.updatedAt?.seconds||a.requestedAt?.seconds||0));
-      const r=records[0];
+      const r=records[0];activeTeacherConnection=r;renderTeacherAssignments(r);const schoolInput=document.getElementById('teacherSchool');if(schoolInput){schoolInput.readOnly=r.status==='connected';if(r.status==='connected')schoolInput.value=r.schoolName||schoolInput.value;schoolInput.title=r.status==='connected'?'Official school name is managed by the registrar.':'Enter your school name';}
       if(r.status==='connected')showTeacherConnectionStatus(`Connected to ${r.schoolName||'your school'} · School ID: ${r.schoolId}${r.assignedClass?' · Class: '+r.assignedClass:''}${r.assignedRole?' · Role: '+r.assignedRole:''}`,'success');
       else if(r.status==='pending')showTeacherConnectionStatus(`Connection request pending approval for ${r.schoolName||'the school'} · School ID: ${r.schoolId}`);
       else if(r.status==='deactivated')showTeacherConnectionStatus(`Your connection to ${r.schoolName||'the school'} has been deactivated. Contact the registrar or request a new connection.`,'error');
@@ -4466,13 +4476,14 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
   document.getElementById('requestSchoolConnection')?.addEventListener('click',requestTeacherSchoolConnection);
   document.getElementById('refreshSchoolConnection')?.addEventListener('click',refreshTeacherSchoolConnection);
   window.refreshTeacherSchoolConnection=refreshTeacherSchoolConnection;
+  renderTeacherAssignments(null);
 
   window.saveTeacherProfileToFirestore=async function(data){
     const user=auth.currentUser;
     if(!user)throw new Error('No authenticated teacher.');
     await setDoc(doc(db,'teachers',user.uid),{
       fullName:user.displayName||data.fullName||'',email:user.email||'',phone:data.phone||'',gender:data.gender||'',
-      schoolName:data.school||'',role:'teacher',qualification:data.qualification||'',
+      schoolName:activeTeacherConnection?.status==='connected'?(activeTeacherConnection.schoolName||''):(data.school||''),role:'teacher',qualification:data.qualification||'',
       specialization:data.specialization||'',experience:data.experience||'',address:data.address||'',
       profilePhoto:data.photo||'',initialSavedAt:data.initialSavedAt||null,updatedAt:serverTimestamp()
     },{merge:true});
