@@ -4283,7 +4283,7 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
       // Older teacher profiles may store the role with different capitalization
       // or legacy wording. Normalize it before deciding whether to allow access.
       const normalizedRole=String(teacherData.role||'').trim().toLowerCase();
-      const acceptedTeacherRoles=['','teacher','class teacher','primary teacher'];
+      const acceptedTeacherRoles=['','teacher','class teacher','subject teacher','primary teacher'];
       if(!acceptedTeacherRoles.includes(normalizedRole)){
         await signOut(auth);
         throw new Error('This account is registered with the role "'+teacherData.role+'", not Teacher. Please contact the administrator.');
