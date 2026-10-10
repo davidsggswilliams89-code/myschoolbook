@@ -1982,7 +1982,7 @@ html.teacher-auth-pending #firebaseAuthGate{display:none !important;}
 <div id="examTimetableView" class="section-view" style="display:none">
   <div class="section-title"><h2>My Examination Timetable</h2><p></p></div>
   <div class="card"><div class="cardhead"><h3>My Subject Examinations</h3></div><div id="teacherExamTimetableMessage" class="empty">Checking your school connection…</div><div class="tablewrap"><table><thead><tr><th>Date</th><th>Time</th><th>Class</th><th>Subject</th><th>Venue</th><th>Invigilator / Duty</th><th>Term / Session</th></tr></thead><tbody id="teacherExamTimetableRows"><tr><td colspan="7" class="empty">Loading examination timetable…</td></tr></tbody></table></div></div>
-  <div class="card"><div class="cardhead"><h3>Examinations Assigned for Me to Invigilate</h3></div><div class="tablewrap"><table><thead><tr><th>Date</th><th>Time</th><th>Class</th><th>Subject</th><th>Venue</th><th>Duty</th><th>Term / Session</th></tr></thead><tbody id="teacherInvigilationRows"><tr><td colspan="7" class="empty">Loading invigilation duties…</td></tr></tbody></table></div></div>
+  <div class="card"><div class="cardhead"><h3>Examinations to Invigilate</h3></div><div class="tablewrap"><table><thead><tr><th>Date</th><th>Time</th><th>Class</th><th>Subject</th><th>Venue</th><th>Duty</th><th>Term / Session</th></tr></thead><tbody id="teacherInvigilationRows"><tr><td colspan="7" class="empty">Loading invigilation duties…</td></tr></tbody></table></div></div>
 </div>
 
 <div id="academicSessionView" class="section-view" style="display:none">
@@ -1990,32 +1990,8 @@ html.teacher-auth-pending #firebaseAuthGate{display:none !important;}
     <h2>Academic Session</h2>
     <p>School calendar, term dates, examination periods, breaks and public holidays.</p>
   </div>
-  <div class="extra-grid">
-    <div class="info-card">
-      <h3>Academic Session</h3>
-      <p><b>Session:</b> 2026 / 2027</p>
-      <p><b>Current Term:</b> First Term</p>
-      <p><b>Current Status:</b> <span class="status-pill current">Teaching Period</span></p>
-    </div>
-    <div class="info-card">
-      <h3>First Term</h3>
-      <p><b>Resumption:</b> To be set by school</p>
-      <p><b>Examination:</b> To be set by school</p>
-      <p><b>Term Ends:</b> To be set by school</p>
-    </div>
-  </div>
-  <div class="card" style="margin-top:14px">
-    <div class="cardhead"><h3>Academic Calendar</h3></div>
-    <div class="calendar-list" style="padding:12px">
-      <div class="calendar-item"><div class="calendar-date">TERM<small>START</small></div><div><b>First Term Resumption</b><p>School date to be entered.</p></div></div>
-      <div class="calendar-item"><div class="calendar-date">BREAK<small>MID-TERM</small></div><div><b>Mid-Term Break</b><p>School date to be entered.</p></div></div>
-      <div class="calendar-item"><div class="calendar-date">EXAM<small>START</small></div><div><b>First Term Examination</b><p>Examination start date to be entered.</p></div></div>
-      <div class="calendar-item"><div class="calendar-date">TERM<small>END</small></div><div><b>First Term Closing</b><p>Term closing date to be entered.</p></div></div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="cardhead"><h3>Public Holidays</h3><span class="status-pill">School Calendar</span></div>
-    <div class="empty">Public holiday dates will appear here when entered by the school.</div>
+  <div id="teacherAcademicCalendarContent">
+    <div class="empty">Loading academic information from your school's registrar…</div>
   </div>
 </div>
 
@@ -2145,6 +2121,7 @@ function closeMoreMenu(){
 }
 function showExtraSection(id,menuButton){
   if((id==='myTimetableView'||id==='examTimetableView')&&typeof window.loadTeacherTimetables==='function')window.loadTeacherTimetables();
+  if(id==='academicSessionView'&&typeof window.loadTeacherAcademicCalendar==='function')window.loadTeacherAcademicCalendar();
   document.querySelectorAll("#dashboardView,#lessonsView,#caExamView,#studentsView,#attendanceView,#profileView,#assignmentView,#myClassesView,#myTimetableView,#examTimetableView,#academicSessionView,#settingsView,#subscriptionView,#holidayView").forEach(v=>v.style.display="none");
   const target=document.getElementById(id);
   if(target) target.style.display="block";
@@ -4502,6 +4479,26 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
       setTimetableMessage('teacherTimetableMessage',lessonRows.length+' timetable entr'+(lessonRows.length===1?'y':'ies')+' matching your assigned classes and subjects.');setTimetableMessage('teacherExamTimetableMessage',examRows.length+' examination entr'+(examRows.length===1?'y':'ies')+' matching your assignments or invigilation duties.');
     }catch(e){console.error('Teacher timetable load failed:',e);setTimetableMessage('teacherTimetableMessage','Could not load timetable. Check Firestore rules for the school timetable.',true);setTimetableMessage('teacherExamTimetableMessage','Could not load exam timetable. Check Firestore rules for the school exam timetable.',true);lessonBody.innerHTML='<tr><td colspan="6" class="empty">Timetable unavailable.</td></tr>';examBody.innerHTML='<tr><td colspan="7" class="empty">Exam timetable unavailable.</td></tr>';if(dutyBody)dutyBody.innerHTML=examBody.innerHTML;}
   }
+  async function loadTeacherAcademicCalendar(){
+    const host=document.getElementById('teacherAcademicCalendarContent');if(!host)return;
+    try{
+      if(!activeTeacherConnection||activeTeacherConnection.status!=='connected')await refreshTeacherSchoolConnection();
+      const rec=activeTeacherConnection;
+      if(!rec?.schoolId||rec.status!=='connected'){host.innerHTML='<div class="empty">Connect to your school to view the academic calendar published by the registrar.</div>';return;}
+      const snap=await getDoc(doc(db,'schools',rec.schoolId));
+      if(!snap.exists()){host.innerHTML='<div class="empty">School academic information is not available.</div>';return;}
+      const school=snap.data();
+      // Expected registrar-managed fields: academicSession, currentTerm, currentStatus, termDates, academicCalendar, publicHolidays.
+      const ac=school.academicCalendar||{};const terms=Array.isArray(ac.events)?ac.events:[];const holidays=Array.isArray(school.publicHolidays)?school.publicHolidays:(Array.isArray(ac.publicHolidays)?ac.publicHolidays:[]);
+      const val=(v)=>v?String(v):'Not yet set by registrar';
+      const esc=(v)=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      const termDates=school.termDates||ac.termDates||{};
+      const eventRows=terms.map(e=>`<div class="calendar-item"><div class="calendar-date">${esc(e.badge||'DATE')}<small>${esc(e.badgeLabel||'')}</small></div><div><b>${esc(e.title||'Academic event')}</b><p>${esc(e.date||e.dateText||'Date not yet set')}${e.description?' · '+esc(e.description):''}</p></div></div>`).join('');
+      const holidayRows=holidays.map(h=>`<div class="calendar-item"><div class="calendar-date">HOLIDAY</div><div><b>${esc(h.name||h.title||'Public holiday')}</b><p>${esc(h.date||h.dateText||'Date not yet set')}</p></div></div>`).join('');
+      host.innerHTML=`<div class="extra-grid"><div class="info-card"><h3>Academic Session</h3><p><b>Session:</b> ${esc(school.academicSession||ac.session||'Not yet set by registrar')}</p><p><b>Current Term:</b> ${esc(school.currentTerm||ac.currentTerm||'Not yet set by registrar')}</p><p><b>Current Status:</b> <span class="status-pill current">${esc(school.currentStatus||ac.currentStatus||'Not yet set')}</span></p></div><div class="info-card"><h3>${esc(school.currentTerm||ac.currentTerm||'Term Dates')}</h3><p><b>Resumption:</b> ${esc(termDates.resumption||termDates.termStart)}</p><p><b>Examination:</b> ${esc(termDates.examination||termDates.examStart)}</p><p><b>Term Ends:</b> ${esc(termDates.termEnd||termDates.closing)}</p></div></div><div class="card" style="margin-top:14px"><div class="cardhead"><h3>Academic Calendar</h3></div><div class="calendar-list" style="padding:12px">${eventRows||'<div class="empty">The registrar has not published academic calendar events yet.</div>'}</div></div><div class="card"><div class="cardhead"><h3>Public Holidays</h3><span class="status-pill">School Calendar</span></div><div class="calendar-list" style="padding:12px">${holidayRows||'<div class="empty">No public holidays have been published by the registrar.</div>'}</div></div>`;
+    }catch(e){console.error('Academic calendar load failed:',e);host.innerHTML='<div class="empty">Could not load academic information. Please check school access permissions.</div>';}
+  }
+  window.loadTeacherAcademicCalendar=loadTeacherAcademicCalendar;
   window.loadTeacherTimetables=loadTeacherTimetables;
 
   async function requestTeacherSchoolConnection(){
