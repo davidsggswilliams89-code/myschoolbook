@@ -1833,6 +1833,14 @@ html.teacher-auth-pending #firebaseAuthGate{display:none !important;}
 </div>
 
 <div id="profileView" class="section-view" style="display:none">
+  <div class="teacher-profile-page" style="margin-bottom:18px">
+    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;padding:18px;margin-bottom:18px">
+      <h3 style="margin:0 0 6px;color:#166534">Connect with School</h3>
+      <p style="margin:0 0 12px;color:#475569">Enter the School ID provided by your school registrar. Your connection becomes active only after the registrar approves it.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><input id="connectSchoolId" placeholder="Enter School ID" style="flex:1;min-width:200px;padding:12px;border:1px solid #cbd5e1;border-radius:9px"><button type="button" id="requestSchoolConnection" style="padding:12px 16px;border:0;border-radius:9px;background:#15803d;color:#fff;font-weight:700;cursor:pointer">Connect with School</button><button type="button" id="refreshSchoolConnection" style="padding:12px 16px;border:1px solid #15803d;border-radius:9px;background:#fff;color:#166534;font-weight:700;cursor:pointer">Refresh Status</button></div>
+      <div id="teacherSchoolConnectionStatus" role="status" style="margin-top:12px;padding:10px;border-radius:8px;background:#fff;color:#334155">Checking school connection…</div>
+    </div>
+  </div>
   <div class="teacher-profile-page">
     <div class="profile-page-head">
       <div><h2>Teacher Profile</h2><p>Enter your teacher information, upload your photo, save it, then return to the Dashboard. You can edit your profile during the first 7 days after the initial save. After that, your details become permanently read-only.</p></div>
@@ -4212,7 +4220,7 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
 <script type="module" id="firebase-auth-module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut, updateProfile, deleteUser, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-  import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+  import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, deleteDoc, serverTimestamp, query, where, updateDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAyqE3tESdUlDPtAdmEa8pYsviiX2J8ltM",
@@ -4226,7 +4234,7 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
-  window.firebaseFirestoreFns = { collection, doc, getDoc, getDocs, addDoc, setDoc, deleteDoc, serverTimestamp };
+  window.firebaseFirestoreFns = { collection, doc, getDoc, getDocs, addDoc, setDoc, deleteDoc, serverTimestamp, query, where, updateDoc };
   try { await setPersistence(auth, browserLocalPersistence); } catch(err) { console.error("Firebase auth persistence setup failed:", err); }
   window.firebaseApp = app;
   window.teacherFirebaseAuth = auth;
@@ -4418,12 +4426,53 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
     document.querySelectorAll('.brand h1').forEach(el=>{if(merged.school)el.textContent=merged.school.toUpperCase();});
   }
 
+  async function teacherConnectionProfile(){
+    const user=auth.currentUser;if(!user)throw new Error('Please sign in as a teacher first.');
+    const snap=await getDoc(doc(db,'teachers',user.uid));return snap.exists()?snap.data():{};
+  }
+  function showTeacherConnectionStatus(text,type='info'){
+    const el=document.getElementById('teacherSchoolConnectionStatus');if(!el)return;
+    el.textContent=text;el.style.background=type==='success'?'#dcfce7':type==='error'?'#fee2e2':'#fff';el.style.color=type==='success'?'#166534':type==='error'?'#991b1b':'#334155';
+  }
+  async function refreshTeacherSchoolConnection(){
+    try{
+      const user=auth.currentUser;if(!user)return;
+      const qs=await getDocs(query(collection(db,'teacherConnectionRequests'),where('teacherUid','==',user.uid)));
+      if(qs.empty){showTeacherConnectionStatus('Not connected to a school yet. Enter the School ID above to send a request.');return;}
+      const records=qs.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.updatedAt?.seconds||b.requestedAt?.seconds||0)-(a.updatedAt?.seconds||a.requestedAt?.seconds||0));
+      const r=records[0];
+      if(r.status==='connected')showTeacherConnectionStatus(`Connected to ${r.schoolName||'your school'} · School ID: ${r.schoolId}${r.assignedClass?' · Class: '+r.assignedClass:''}${r.assignedRole?' · Role: '+r.assignedRole:''}`,'success');
+      else if(r.status==='pending')showTeacherConnectionStatus(`Connection request pending approval for ${r.schoolName||'the school'} · School ID: ${r.schoolId}`);
+      else if(r.status==='deactivated')showTeacherConnectionStatus(`Your connection to ${r.schoolName||'the school'} has been deactivated. Contact the registrar or request a new connection.`,'error');
+      else if(r.status==='rejected')showTeacherConnectionStatus(`Your request to ${r.schoolName||'the school'} was not approved. You may submit a new request if appropriate.`,'error');
+      else showTeacherConnectionStatus('No active school connection. Enter a School ID to request connection.');
+    }catch(e){console.error(e);showTeacherConnectionStatus('Could not check connection status. Please check Firestore rules and try again.','error');}
+  }
+  async function requestTeacherSchoolConnection(){
+    const btn=document.getElementById('requestSchoolConnection');if(btn)btn.disabled=true;
+    try{
+      const user=auth.currentUser;if(!user)throw new Error('Please sign in as a teacher first.');
+      const schoolId=document.getElementById('connectSchoolId')?.value.trim();if(!schoolId)throw new Error('Enter the School ID shown by the registrar.');
+      const schoolSnap=await getDoc(doc(db,'schools',schoolId));if(!schoolSnap.exists())throw new Error('School ID not found. Check the ID with the registrar.');
+      const school=schoolSnap.data();if(school.status!=='active')throw new Error('This school is not currently active. Contact the registrar.');
+      const profile=await teacherConnectionProfile();
+      const reqRef=doc(db,'teacherConnectionRequests',schoolId+'_'+user.uid);const old=await getDoc(reqRef);
+      if(old.exists()&&['pending','connected'].includes(old.data().status)){showTeacherConnectionStatus(old.data().status==='connected'?`Already connected to ${school.name} · School ID: ${schoolId}`:`Your request to ${school.name} is already pending.` ,old.data().status==='connected'?'success':'info');return;}
+      await setDoc(reqRef,{schoolId,schoolName:school.name||'School',registrarUid:school.createdBy||'',teacherUid:user.uid,teacherName:profile.fullName||user.displayName||'Teacher',teacherEmail:user.email||'',teacherPhone:profile.phone||'',teacherPhoto:profile.profilePhoto||profile.photo||'',status:'pending',requestedAt:serverTimestamp(),updatedAt:serverTimestamp()},{merge:true});
+      document.getElementById('connectSchoolId').value='';showTeacherConnectionStatus(`Request sent to ${school.name||'the school'} (ID: ${schoolId}). The registrar must approve it.`); 
+    }catch(e){console.error(e);showTeacherConnectionStatus(e.message||'Could not send the request. Check Firestore rules.','error');}
+    finally{if(btn)btn.disabled=false;}
+  }
+  document.getElementById('requestSchoolConnection')?.addEventListener('click',requestTeacherSchoolConnection);
+  document.getElementById('refreshSchoolConnection')?.addEventListener('click',refreshTeacherSchoolConnection);
+  window.refreshTeacherSchoolConnection=refreshTeacherSchoolConnection;
+
   window.saveTeacherProfileToFirestore=async function(data){
     const user=auth.currentUser;
     if(!user)throw new Error('No authenticated teacher.');
     await setDoc(doc(db,'teachers',user.uid),{
       fullName:user.displayName||data.fullName||'',email:user.email||'',phone:data.phone||'',gender:data.gender||'',
-      schoolId:'',schoolName:data.school||'',role:'teacher',qualification:data.qualification||'',
+      schoolName:data.school||'',role:'teacher',qualification:data.qualification||'',
       specialization:data.specialization||'',experience:data.experience||'',address:data.address||'',
       profilePhoto:data.photo||'',initialSavedAt:data.initialSavedAt||null,updatedAt:serverTimestamp()
     },{merge:true});
@@ -4435,6 +4484,7 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
       document.documentElement.classList.add('teacher-auth-pending');
       try{
         const role=await routeSignedInUser(user);
+        setTimeout(()=>refreshTeacherSchoolConnection(),900);
         if(role==='registrar')return;
       }catch(err){
         console.error('Account role check failed:',err);
