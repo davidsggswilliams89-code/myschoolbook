@@ -2438,12 +2438,20 @@ window.loadStudentsFromFirestore=async function(){
    // Connected teachers must use the registrar's official school register.
    const connection=window.activeTeacherConnection||null;
    if(connection&&["connected","approved","active"].includes(String(connection.status||"").toLowerCase())&&connection.schoolId){
-     const schoolSnap=await window.firebaseFirestoreFns.getDocs(
-       window.firebaseFirestoreFns.collection(db,"schools",connection.schoolId,"students")
-     );
      const allowed=teacherAssignedClasses();
      const pairClasses=[...new Set(teacherAssignedPairs().map(a=>a.className||a.class).filter(Boolean))];
      const classes=pairClasses.length?pairClasses:allowed;
+     if(!classes.length){
+       throw new Error("Your school connection is active, but the registrar has not assigned any classes yet.");
+     }
+     // Firestore security rules do not filter documents after a query. Constrain the
+     // query itself to assigned classes so it can satisfy school student-list rules.
+     const schoolStudentsRef=window.firebaseFirestoreFns.collection(db,"schools",connection.schoolId,"students");
+     const schoolStudentsQuery=window.firebaseFirestoreFns.query(
+       schoolStudentsRef,
+       window.firebaseFirestoreFns.where("className","in",classes.slice(0,10))
+     );
+     const schoolSnap=await window.firebaseFirestoreFns.getDocs(schoolStudentsQuery);
      students=schoolSnap.docs.map(function(d){
        const x=d.data()||{};
        return [
@@ -2511,17 +2519,22 @@ window.loadStudentsFromFirestore=async function(){
    return {ok:true,count:students.length};
  }catch(err){
    console.error("Student Firebase query failed:",err);
-   // Do not convert a Firebase read failure into an empty student database.
-   refreshStudentViews();
-   if(typeof window.renderAttendance==="function") window.renderAttendance();
+   // A connected teacher must never see their separate personal list as the school's official register.
+   if(teacherIsSchoolConnected())students=[];
+   if(typeof window.refreshStudentViews==="function")window.refreshStudentViews();
+   if(typeof window.renderAttendance==="function")window.renderAttendance();
 
    const sourceNote=document.getElementById("studentFirebaseSourceNote");
    if(sourceNote){
-     sourceNote.textContent='';
-     sourceNote.style.display='none';
+     sourceNote.textContent=(teacherIsSchoolConnected()
+       ? "Official school student list could not load: "
+       : "Firebase student loading failed: ")+(err&&err.message?err.message:"Check Firestore rules and try again.");
+     sourceNote.style.display="";
+     sourceNote.style.background="#fff1f2";
+     sourceNote.style.borderColor="#fecdd3";
+     sourceNote.style.color="#9f1239";
    }
-   // Keep the existing student data visible instead of replacing the list with zero.
-   return {ok:false,count:students.length,source:"current"};
+   return {ok:false,count:students.length,source:teacherIsSchoolConnected()?"school-register-error":"current",error:err&&err.message||String(err)};
  }
 };
 
