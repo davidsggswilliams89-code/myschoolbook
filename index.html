@@ -2284,7 +2284,7 @@ function studentFirestoreId(s){return (s[8]&&s[8].firestoreId)||"";}
 function connectedSchoolStudentId(s){return (s[8]&&s[8].schoolStudentId)||"";}
 function teacherIsSchoolConnected(){
  const r=window.activeTeacherConnection||null;
- return !!(r&&r.status==="connected"&&r.schoolId);
+ return !!(r&&["connected","approved","active"].includes(String(r.status||"").toLowerCase())&&r.schoolId);
 }
 function teacherAssignedPairs(){
  const r=window.activeTeacherConnection||null;
@@ -2437,7 +2437,7 @@ window.loadStudentsFromFirestore=async function(){
 
    // Connected teachers must use the registrar's official school register.
    const connection=window.activeTeacherConnection||null;
-   if(connection&&connection.status==="connected"&&connection.schoolId){
+   if(connection&&["connected","approved","active"].includes(String(connection.status||"").toLowerCase())&&connection.schoolId){
      const schoolSnap=await window.firebaseFirestoreFns.getDocs(
        window.firebaseFirestoreFns.collection(db,"schools",connection.schoolId,"students")
      );
@@ -2447,12 +2447,12 @@ window.loadStudentsFromFirestore=async function(){
      students=schoolSnap.docs.map(function(d){
        const x=d.data()||{};
        return [
-         x.admissionNumber||"",
-         x.name||"",
+         x.admissionNumber||x.admissionNo||"",
+         x.name||x.studentName||x.fullName||"",
          x.gender||"",
          Number(x.ca1||0),Number(x.ca2||0),Number(x.ca3||0),Number(x.exam||0),
-         {phone:x.parentPhone||x.phone||"",dob:x.dob||"",className:x.className||x.class||"",
-          guardian:x.guardian||"",address:x.address||"",photo:x.photo||""},
+         {phone:x.parentPhone||x.parentGuardianPhone||x.phone||"",dob:x.dob||x.dateOfBirth||"",className:x.className||x.class||x.classLevel||"",
+          guardian:x.guardian||x.parentGuardianName||x.parentName||"",address:x.address||x.parentAddress||"",photo:x.photo||x.studentPhoto||""},
          {schoolStudentId:d.id,firestoreId:""}
        ];
      }).filter(s=>{
@@ -4587,6 +4587,22 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
       }
     }catch(e){console.error(e);showTeacherConnectionStatus('Could not check connection status. Please check Firestore rules and try again.','error');}
   }
+  // Refresh official registrar records whenever a connected teacher opens Students.
+  const originalOpenStudents=window.openStudents;
+  window.openStudents=async function(){
+    if(teacherIsSchoolConnected()&&typeof window.loadStudentsFromFirestore==="function"){
+      try{await window.loadStudentsFromFirestore();}catch(e){console.error("Official school student refresh failed:",e);}
+    }
+    if(typeof originalOpenStudents==="function")return originalOpenStudents.apply(this,arguments);
+  };
+  document.querySelectorAll('[data-view="students"],[onclick*="openStudents"]').forEach(function(el){
+    el.addEventListener("click",function(){
+      if(teacherIsSchoolConnected()&&typeof window.loadStudentsFromFirestore==="function"){
+        window.loadStudentsFromFirestore().catch(e=>console.error("Official school student refresh failed:",e));
+      }
+    },true);
+  });
+
   function teacherHasPair(record,entry){
     const pairs=Array.isArray(record?.assignedTeachingAssignments)?record.assignedTeachingAssignments:[];
     return pairs.some(a=>(a.className||a.class)===(entry.className||entry.class)&&(a.subject||'').trim().toLowerCase()===(entry.subject||'').trim().toLowerCase());
