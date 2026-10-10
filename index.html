@@ -1970,8 +1970,12 @@ html.teacher-auth-pending #firebaseAuthGate{display:none !important;}
 </div>
 
 <div id="myTimetableView" class="section-view" style="display:none">
-  <div class="section-title"><h2>My Timetable</h2><p>Your timetable is loaded from your connected school's registrar and filtered to your assigned class–subject combinations.</p></div>
-  <div class="card"><div class="cardhead"><h3>Assigned Teaching Timetable</h3><button type="button" class="mini" onclick="window.loadTeacherTimetables&&window.loadTeacherTimetables()">Refresh</button></div><div id="teacherTimetableMessage" class="empty">Checking your school connection…</div><div class="tablewrap"><table class="schedule-table"><thead><tr><th>Day / Date</th><th>Time</th><th>Class</th><th>Subject</th><th>Venue</th><th>Term / Session</th></tr></thead><tbody id="teacherTimetableRows"><tr><td colspan="6" class="empty">Loading timetable…</td></tr></tbody></table></div></div>
+  <div class="section-title"><h2>Timetable</h2></div>
+  <!-- Registrar-linked teaching timetable display removed as requested. Hidden compatibility nodes remain for shared timetable code. -->
+  <div style="display:none!important" aria-hidden="true">
+    <div id="teacherTimetableMessage" class="empty"></div>
+    <table><tbody id="teacherTimetableRows"></tbody></table>
+  </div>
 </div>
 
 <div id="examTimetableView" class="section-view" style="display:none">
