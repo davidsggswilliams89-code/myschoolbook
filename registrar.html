@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>my e-notice app | Registrar Portal</title>
+<style>
+:root{--g:#176b45;--gd:#104b32;--bg:#f3f7f4;--line:#dce6df;--muted:#65736a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#17251d;font:16px Arial,sans-serif}
+header{background:var(--gd);color:white;padding:16px 5%;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:12px}.logo{background:white;color:var(--gd);font-weight:bold;border-radius:10px;padding:13px}
+h1{font-size:19px;margin:0 0 4px}header p{margin:0;font-size:12px;opacity:.8}
+main{max-width:1050px;margin:26px auto;padding:0 16px}.hero{background:linear-gradient(120deg,var(--g),#278657);color:white;padding:26px;border-radius:16px;margin-bottom:20px}
+.hero h2{margin:0 0 8px;font-size:clamp(24px,4vw,34px)}.hero p{margin:0;line-height:1.5}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{background:white;border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:18px}
+h3{margin:0 0 8px}.muted{color:var(--muted);font-size:14px;line-height:1.5;margin:0 0 16px}
+label{display:block;font-size:13px;font-weight:bold;margin:13px 0 6px}input{width:100%;padding:12px;border:1px solid #cbd8cf;border-radius:8px;font:inherit}
+button{cursor:pointer;border-radius:9px;padding:11px 15px;font-weight:bold;font:inherit}.primary{background:var(--g);border:0;color:white}.primary:hover{background:var(--gd)}.secondary{background:white;border:1px solid var(--line);color:#17251d}.full{width:100%;margin-top:17px}
+.notice{padding:12px 14px;border-radius:9px;margin-bottom:16px;font-size:14px;line-height:1.45}.info{background:#eef5ff;color:#234f83}.error{background:#fff0f0;color:#a82929}.success{background:#eaf5ee;color:var(--gd)}
+.hidden{display:none!important}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:18px 0}.stat span{display:block;color:var(--muted);font-size:12px;margin-bottom:8px}.stat strong{font-size:18px}
+.details{display:grid;grid-template-columns:1fr 1fr;gap:12px}.item{border:1px solid var(--line);border-radius:9px;padding:13px;overflow-wrap:anywhere}.item small{display:block;color:var(--muted);margin-bottom:6px}
+ol{line-height:1.8;color:#445248;font-size:14px}footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
+@media(max-width:700px){.grid,.details{grid-template-columns:1fr}.stats{grid-template-columns:1fr}.card{padding:17px}header{padding:14px 16px}h1{font-size:16px}}
+</style>
+</head>
+<body>
+<header><div class="brand"><div class="logo">eN</div><div><h1>my e-notice app</h1><p>School administration portal</p></div></div><button id="signOut" class="secondary hidden">Sign out</button></header>
+<main>
+<section class="hero"><h2>Welcome to your Registrar Portal</h2><p>Complete your school profile, add the official school photo, and manage your school information from one dashboard.</p></section>
+<div id="message" class="notice hidden" role="status" aria-live="polite"></div>
+<section id="setup" class="card hidden"><h3>Set up your school profile</h3><p class="muted">Enter the school's official details. A unique internal school ID will be generated automatically.</p>
+<form id="schoolForm"><label for="schoolName">Official school name</label><input id="schoolName" required maxlength="160" placeholder="e.g. Bright Future Primary School">
+<label for="schoolPhotoFile">School profile photo / logo</label><input id="schoolPhotoFile" type="file" accept="image/*"><div style="display:flex;align-items:center;gap:12px;margin-top:10px"><img id="schoolPhotoPreview" alt="School profile photo preview" class="hidden" style="width:88px;height:88px;object-fit:contain;background:#f3f7f4;border:1px solid var(--line);border-radius:12px;padding:5px"><span class="muted" style="margin:0">Upload the school's official logo or profile photo. It will be stored in Cloudinary.</span></div><input id="schoolPhotoUrl" type="hidden">
+<label for="schoolType">School type</label><input id="schoolType" required maxlength="80" value="Primary School">
+<label for="schoolAddress">School address</label><input id="schoolAddress" required maxlength="250">
+<label for="schoolPhone">School phone (optional)</label><input id="schoolPhone" type="tel" maxlength="40">
+<label for="session">Current academic session</label><input id="session" required maxlength="30" value="2026/2027">
+<button class="primary full" type="submit">Save school profile</button></form></section>
+<section id="dashboard" class="hidden">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin:22px 0"><div><h3 id="welcome">Registrar Dashboard</h3><p class="muted" style="margin:5px 0 0">Your school profile has been saved.</p></div><button id="edit" class="secondary">Edit profile</button></div>
+<div class="stats"><div class="card stat"><span>School status</span><strong>Profile created</strong></div><div class="card stat"><span>Classes</span><strong>Not configured yet</strong></div><div class="card stat"><span>Connected teachers</span><strong>0 — not connected yet</strong></div></div>
+<div class="card"><h3>School Profile</h3><div style="display:flex;align-items:center;gap:16px;margin:12px 0"><img id="dashboardSchoolPhoto" class="hidden" alt="School profile photo" style="width:100px;height:100px;object-fit:contain;border:1px solid var(--line);border-radius:12px;background:#fff;padding:6px"><div><strong id="dashboardSchoolName"></strong><p id="schoolId" class="muted" style="margin:6px 0 0"></p></div></div><div id="details" class="details"></div></div>
+<div class="card"><h3>Next modules</h3><p class="muted">We will build and test these in separate stages.</p><ol><li>Primary 1–6 class management.</li><li>Official student registration and records.</li><li>Teacher invitations and connection requests.</li><li>Registrar approval and teacher assignments.</li><li>Secure connection to the independent Teacher Dashboard.</li></ol></div>
+</section>
+</main><footer>my e-notice app · Registrar Portal</footer>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+import {getAuth,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+import {getFirestore,doc,getDoc,setDoc,updateDoc,collection,addDoc,serverTimestamp} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+const firebaseConfig={apiKey:"AIzaSyAyqE3tESdUlDPtAdmEa8pYsviiX2J8ltM",authDomain:"myschoolbook-4d23d.firebaseapp.com",projectId:"myschoolbook-4d23d",storageBucket:"myschoolbook-4d23d.firebasestorage.app",messagingSenderId:"60153250746",appId:"1:60153250746:web:a3342f87235e6a3c515383"};
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+const $=id=>document.getElementById(id);let user=null,profile=null,busy=false;
+function msg(t,type="info"){const e=$("message");e.textContent=t;e.className="notice "+type}
+function hideMsg(){$("message").classList.add("hidden")}
+function view(name){["setup","dashboard"].forEach(x=>$(x).classList.toggle("hidden",x!==name));$("signOut").classList.toggle("hidden",!user)}
+function err(e){const map={"auth/email-already-in-use":"This email already has an account. Please sign in.","auth/invalid-credential":"Email or password is incorrect.","auth/weak-password":"Use a password with at least 6 characters.","auth/invalid-email":"Enter a valid email address.","permission-denied":"Firebase denied this operation. Check the Firestore security rules."};return map[e.code]||e.message||"Something went wrong. Please try again."}
+function setBusy(v){busy=v;document.querySelectorAll("form button[type=submit]").forEach(b=>{b.disabled=v;b.style.opacity=v?".6":"1"})}
+function detail(label,value){const d=document.createElement("div");d.className="item";const s=document.createElement("small"),b=document.createElement("strong");s.textContent=label;b.textContent=value||"Not provided";d.append(s,b);return d}
+function render(school){$("welcome").textContent="Welcome, "+(user.displayName||profile?.fullName||"Registrar");$("dashboardSchoolName").textContent=school.name||"School Profile";$("schoolId").textContent="School ID: "+school.id;const photo=$("dashboardSchoolPhoto");if(school.photo){photo.src=school.photo;photo.classList.remove("hidden")}else{photo.removeAttribute("src");photo.classList.add("hidden")}const d=$("details");d.replaceChildren(detail("Official school name",school.name),detail("School type",school.type),detail("School address",school.address),detail("School phone",school.phone),detail("Academic session",school.academicSession),detail("Registrar",profile?.fullName||user.displayName));view("dashboard")}
+async function load(userObj){const snap=await getDoc(doc(db,"registrars",userObj.uid));if(!snap.exists()){profile=null;view("setup");return}profile={uid:userObj.uid,...snap.data()};if(!profile.schoolId){view("setup");return}const ss=await getDoc(doc(db,"schools",profile.schoolId));if(!ss.exists()){msg("The school record could not be found. Please contact support.","error");view("setup");return}render({id:ss.id,...ss.data()})}
+async function uploadSchoolPhoto(file,uid){if(!file)throw new Error("Please select a school photo.");if(!file.type.startsWith("image/"))throw new Error("Please select an image file.");if(file.size>10*1024*1024)throw new Error("School photo must be 10 MB or smaller.");const formData=new FormData();formData.append("file",file);formData.append("upload_preset","Obaestate");formData.append("folder","schools/"+uid);formData.append("public_id","school_profile_"+Date.now());const response=await fetch("https://api.cloudinary.com/v1_1/hjdnytcb/image/upload",{method:"POST",body:formData});const result=await response.json();if(!response.ok||!result.secure_url)throw new Error(result.error?.message||"Cloudinary upload failed.");return result.secure_url}
+$("schoolPhotoFile").addEventListener("change",()=>{const file=$("schoolPhotoFile").files?.[0];if(!file)return;const preview=$("schoolPhotoPreview");preview.src=URL.createObjectURL(file);preview.classList.remove("hidden")});
+$("schoolForm").addEventListener("submit",async e=>{e.preventDefault();if(busy||!user)return;hideMsg();setBusy(true);try{const ref=doc(db,"registrars",user.uid),rs=await getDoc(ref);if(!rs.exists())throw new Error("Registrar profile not found. Please sign out and register again.");const rd=rs.data(),editing=!!rd.schoolId;let photoUrl=$("schoolPhotoUrl").value.trim();const photoFile=$("schoolPhotoFile").files?.[0];if(photoFile){msg("Uploading school photo…","info");photoUrl=await uploadSchoolPhoto(photoFile,user.uid);$("schoolPhotoUrl").value=photoUrl}const payload={name:$("schoolName").value.trim(),type:$("schoolType").value.trim(),address:$("schoolAddress").value.trim(),phone:$("schoolPhone").value.trim(),academicSession:$("session").value.trim(),photo:photoUrl,updatedAt:serverTimestamp()};if(!payload.name||!payload.type||!payload.address||!payload.academicSession)throw new Error("Please complete all required fields.");let id=rd.schoolId;if(editing){await updateDoc(doc(db,"schools",id),payload)}else{const sr=await addDoc(collection(db,"schools"),{...payload,createdBy:user.uid,createdAt:serverTimestamp(),status:"active"});id=sr.id;await updateDoc(ref,{schoolId:id,updatedAt:serverTimestamp()})}profile={...rd,...payload,schoolId:id};render({id,...payload});msg(editing?"School profile updated.":"School profile created successfully.","success")}catch(e){msg(err(e),"error")}finally{setBusy(false)}});
+$("edit").addEventListener("click",async()=>{try{const s=await getDoc(doc(db,"schools",profile.schoolId));if(!s.exists())throw new Error("School record not found.");const d=s.data();$("schoolName").value=d.name||"";$("schoolType").value=d.type||"Primary School";$("schoolAddress").value=d.address||"";$("schoolPhone").value=d.phone||"";$("session").value=d.academicSession||"";$("schoolPhotoUrl").value=d.photo||"";if(d.photo){$("schoolPhotoPreview").src=d.photo;$("schoolPhotoPreview").classList.remove("hidden")}else{$("schoolPhotoPreview").classList.add("hidden")}$("schoolPhotoFile").value="";view("setup");hideMsg()}catch(e){msg(err(e),"error")}});
+$("signOut").addEventListener("click",async()=>{try{await signOut(auth);msg("You have signed out.","success")}catch(e){msg(err(e),"error")}});
+onAuthStateChanged(auth,async u=>{
+  user=u;
+  if(!u){profile=null;window.location.replace("index.html");return}
+  try{
+    const roleSnap=await getDoc(doc(db,"registrars",u.uid));
+    if(!roleSnap.exists() || roleSnap.data()?.role!=="registrar"){await signOut(auth);window.location.replace("index.html");return}
+    await load(u);
+  }catch(e){msg(err(e),"error");setTimeout(()=>window.location.replace("index.html"),1800)}
+});
+</script>
+</body></html>
