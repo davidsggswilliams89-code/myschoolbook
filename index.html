@@ -4274,25 +4274,29 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
   document.getElementById('registrarRegisterBack')?.addEventListener('click',()=>{showPanel(registerRoleChoice);subtitle.textContent='Choose the account you want to create';});
 
   async function routeSignedInUser(user){
-    // Registrar records are checked first. Existing teacher accounts continue to work
-    // through their existing teachers/{uid} profile documents.
+    // Check the user's own teacher profile first. This preserves existing teacher
+    // login under the current teacher-only Firestore rules, without requiring a
+    // read from the registrars collection.
+    const teacherSnap=await getDoc(doc(db,'teachers',user.uid));
+    if(teacherSnap.exists()){
+      const teacherData=teacherSnap.data()||{};
+      if(teacherData.role && teacherData.role!=='teacher'){
+        await signOut(auth);
+        throw new Error('This account does not have teacher access.');
+      }
+      return 'teacher';
+    }
+
+    // Only check the registrar record if this account has no teacher profile.
+    // Registrar access still requires appropriate Firestore rules for registrars/{uid}.
     const registrarSnap=await getDoc(doc(db,'registrars',user.uid));
     if(registrarSnap.exists() && registrarSnap.data()?.role==='registrar'){
       window.location.replace('registrar.html');
       return 'registrar';
     }
-    let teacherSnap=await getDoc(doc(db,'teachers',user.uid));
-    if(!teacherSnap.exists()){
-      // A newly registered account without a role record is not allowed into a dashboard.
-      await signOut(auth);
-      throw new Error('This account has no registered role. Please create an account or contact support.');
-    }
-    const teacherData=teacherSnap.data()||{};
-    if(teacherData.role && teacherData.role!=='teacher'){
-      await signOut(auth);
-      throw new Error('This account does not have teacher access.');
-    }
-    return 'teacher';
+
+    await signOut(auth);
+    throw new Error('This account has no registered role. Please create an account or contact support.');
   }
 
   loginForm?.addEventListener('submit',async e=>{
