@@ -2306,28 +2306,69 @@ function teacherAssignedSubjectsForClass(cls){
 function applyAssignedClassFilters(){
  if(!teacherIsSchoolConnected())return;
  const allowed=teacherAssignedClasses();
- const classSelect=document.getElementById("classSelect");
- if(classSelect){
-   const previous=classSelect.value;
-   classSelect.replaceChildren();
-   allowed.forEach(c=>classSelect.add(new Option(c,c)));
-   if(allowed.includes(previous))classSelect.value=previous;
-   else if(allowed.length)classSelect.value=allowed[0];
-   classSelect.disabled=allowed.length<=1;
+ // If the connection record has not yet returned assignments, do not destroy the
+ // original dashboard controls or alter the standalone teacher experience.
+ if(!allowed.length)return;
+
+ function setOptions(select,values){
+   if(!select)return;
+   const previous=select.value;
+   select.replaceChildren();
+   values.forEach(v=>select.add(new Option(v,v)));
+   if(values.includes(previous))select.value=previous;
+   else if(values.length)select.value=values[0];
+   select.disabled=values.length<=1;
  }
- const attendanceSelect=document.getElementById("attendanceClassFilter");
- if(attendanceSelect){
-   const previous=attendanceSelect.value;
-   attendanceSelect.replaceChildren();
-   allowed.forEach(c=>attendanceSelect.add(new Option(c,c)));
-   if(allowed.includes(previous))attendanceSelect.value=previous;
-   else if(allowed.length)attendanceSelect.value=allowed[0];
-   attendanceSelect.disabled=allowed.length<=1;
+ setOptions(document.getElementById("classSelect"),allowed);
+ setOptions(document.getElementById("attendanceClassFilter"),allowed);
+ setOptions(document.getElementById("lessonLibraryClass"),allowed);
+
+ function refreshSubjectOptions(select,cls,placeholder){
+   if(!select)return;
+   const subjects=teacherAssignedSubjectsForClass(cls);
+   if(!subjects.length)return; // Preserve existing options if registrar assignment fields are unavailable.
+   const previous=select.value;
+   select.replaceChildren();
+   select.add(new Option(placeholder,""));
+   subjects.forEach(s=>select.add(new Option(s,s)));
+   if(subjects.includes(previous))select.value=previous;
  }
+ const dashboardClass=document.getElementById("classSelect")?.value||allowed[0];
+ const libraryClass=document.getElementById("lessonLibraryClass")?.value||allowed[0];
+ refreshSubjectOptions(document.getElementById("dashboardSubjectFilter"),dashboardClass,"All Assigned Subjects");
+ refreshSubjectOptions(document.getElementById("lessonLibrarySubject"),libraryClass,"Select Assigned Subject");
+
  if(typeof window.renderStudents==="function")window.renderStudents();
  if(typeof window.renderAttendance==="function")window.renderAttendance();
  if(typeof window.updateDashboard==="function")window.updateDashboard();
+ if(typeof window.refreshCurriculumFromSource==="function")window.refreshCurriculumFromSource();
 }
+window.applyAssignedClassFilters=applyAssignedClassFilters;
+
+// Keep the subject dropdown tied to the selected class for connected teachers.
+document.getElementById("classSelect")?.addEventListener("change",function(){
+ if(teacherIsSchoolConnected()){
+   const select=document.getElementById("dashboardSubjectFilter");
+   const subjects=teacherAssignedSubjectsForClass(this.value);
+   if(select&&subjects.length){
+     const previous=select.value;select.replaceChildren();select.add(new Option("All Assigned Subjects",""));
+     subjects.forEach(s=>select.add(new Option(s,s)));
+     if(subjects.includes(previous))select.value=previous;
+   }
+ }
+});
+document.getElementById("lessonLibraryClass")?.addEventListener("change",function(){
+ if(teacherIsSchoolConnected()){
+   const select=document.getElementById("lessonLibrarySubject");
+   const subjects=teacherAssignedSubjectsForClass(this.value);
+   if(select&&subjects.length){
+     const previous=select.value;select.replaceChildren();select.add(new Option("Select Assigned Subject",""));
+     subjects.forEach(s=>select.add(new Option(s,s)));
+     if(subjects.includes(previous))select.value=previous;
+   }
+ }
+});
+
 function studentFirestorePayload(s){
  const info=studentInfo(s);
  return {
