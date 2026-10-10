@@ -1964,43 +1964,13 @@ html.teacher-auth-pending #firebaseAuthGate{display:none !important;}
 </div>
 
 <div id="myTimetableView" class="section-view" style="display:none">
-  <div class="section-title">
-    <h2>My Timetable</h2>
-    <p>Your weekly teaching timetable. Timetable details can later be connected to the school system.</p>
-  </div>
-  <div class="card">
-    <div class="cardhead"><h3>Weekly Teaching Timetable</h3><span class="status-pill current">Teacher Timetable</span></div>
-    <div class="tablewrap">
-      <table class="schedule-table">
-        <thead><tr><th>Time</th><th>Monday</th><th>Tuesday</th><th>Wednesday</th><th>Thursday</th><th>Friday</th></tr></thead>
-        <tbody>
-          <tr><td>8:00 – 8:40</td><td><div class="schedule-subject">Basic Science</div><div class="schedule-class">Primary 5</div></td><td><div class="schedule-subject">Basic Science</div><div class="schedule-class">Primary 4</div></td><td><div class="schedule-subject">Basic Science</div><div class="schedule-class">Primary 5</div></td><td><div class="schedule-subject">Basic Science</div><div class="schedule-class">Primary 4</div></td><td><div class="schedule-subject">Basic Science</div><div class="schedule-class">Primary 5</div></td></tr>
-          <tr><td>8:40 – 9:20</td><td><div class="schedule-subject">Basic Science</div><div class="schedule-class">Primary 4</div></td><td><div class="schedule-subject">Basic Science</div><div class="schedule-class">Primary 5</div></td><td><div class="schedule-subject">Basic Science</div><div class="schedule-class">Primary 4</div></td><td><div class="schedule-subject">Basic Science</div><div class="schedule-class">Primary 5</div></td><td><div class="schedule-subject">Basic Science</div><div class="schedule-class">Primary 4</div></td></tr>
-          <tr><td>9:20 – 10:00</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
-          <tr><td>10:00 – 10:40</td><td><div class="schedule-subject">Basic Science</div><div class="schedule-class">Primary 5</div></td><td><div class="schedule-subject">Basic Science</div><div class="schedule-class">Primary 4</div></td><td>—</td><td><div class="schedule-subject">Basic Science</div><div class="schedule-class">Primary 5</div></td><td>—</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+  <div class="section-title"><h2>My Timetable</h2><p>Your timetable is loaded from your connected school's registrar and filtered to your assigned class–subject combinations.</p></div>
+  <div class="card"><div class="cardhead"><h3>Assigned Teaching Timetable</h3><button type="button" class="mini" onclick="window.loadTeacherTimetables&&window.loadTeacherTimetables()">Refresh</button></div><div id="teacherTimetableMessage" class="empty">Checking your school connection…</div><div class="tablewrap"><table class="schedule-table"><thead><tr><th>Day / Date</th><th>Time</th><th>Class</th><th>Subject</th><th>Venue</th><th>Term / Session</th></tr></thead><tbody id="teacherTimetableRows"><tr><td colspan="6" class="empty">Loading timetable…</td></tr></tbody></table></div></div>
 </div>
 
 <div id="examTimetableView" class="section-view" style="display:none">
-  <div class="section-title">
-    <h2>My Examination Timetable</h2>
-    <p>View your examination schedule and the classes or subjects assigned to you.</p>
-  </div>
-  <div class="card">
-    <div class="cardhead"><h3>First Term Examination</h3><span class="status-pill upcoming">Upcoming</span></div>
-    <div class="tablewrap">
-      <table>
-        <thead><tr><th>Date</th><th>Day</th><th>Time</th><th>Class</th><th>Subject</th><th>Status</th></tr></thead>
-        <tbody>
-          <tr><td>To be set</td><td>—</td><td>—</td><td>Primary 5</td><td>Basic Science &amp; Technology</td><td><span class="status-pill upcoming">Upcoming</span></td></tr>
-          <tr><td>To be set</td><td>—</td><td>—</td><td>Primary 4</td><td>Basic Science &amp; Technology</td><td><span class="status-pill upcoming">Upcoming</span></td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+  <div class="section-title"><h2>My Examination Timetable</h2><p>Examination dates, times, venues and invigilation duties matching your approved assignments.</p></div>
+  <div class="card"><div class="cardhead"><h3>Assigned Examinations & Invigilation</h3><button type="button" class="mini" onclick="window.loadTeacherTimetables&&window.loadTeacherTimetables()">Refresh</button></div><div id="teacherExamTimetableMessage" class="empty">Checking your school connection…</div><div class="tablewrap"><table><thead><tr><th>Date</th><th>Time</th><th>Class</th><th>Subject</th><th>Venue</th><th>Invigilator / Duty</th><th>Term / Session</th></tr></thead><tbody id="teacherExamTimetableRows"><tr><td colspan="7" class="empty">Loading examination timetable…</td></tr></tbody></table></div></div>
 </div>
 
 <div id="academicSessionView" class="section-view" style="display:none">
@@ -2162,6 +2132,7 @@ function closeMoreMenu(){
   if(menu) menu.classList.remove("show");
 }
 function showExtraSection(id,menuButton){
+  if((id==='myTimetableView'||id==='examTimetableView')&&typeof window.loadTeacherTimetables==='function')window.loadTeacherTimetables();
   document.querySelectorAll("#dashboardView,#lessonsView,#caExamView,#studentsView,#attendanceView,#profileView,#assignmentView,#myClassesView,#myTimetableView,#examTimetableView,#academicSessionView,#settingsView,#subscriptionView,#holidayView").forEach(v=>v.style.display="none");
   const target=document.getElementById(id);
   if(target) target.style.display="block";
@@ -4464,6 +4435,44 @@ document.addEventListener("DOMContentLoaded",loadTeacherSettings);
       else showTeacherConnectionStatus('No active school connection. Enter a School ID to request connection.');
     }catch(e){console.error(e);showTeacherConnectionStatus('Could not check connection status. Please check Firestore rules and try again.','error');}
   }
+  function teacherHasPair(record,entry){
+    const pairs=Array.isArray(record?.assignedTeachingAssignments)?record.assignedTeachingAssignments:[];
+    return pairs.some(a=>(a.className||a.class)===(entry.className||entry.class)&&(a.subject||'').trim().toLowerCase()===(entry.subject||'').trim().toLowerCase());
+  }
+  function safeCell(row,value){const td=document.createElement('td');td.textContent=value||'—';row.append(td);return td;}
+  function setTimetableMessage(id,text,isError=false){const el=document.getElementById(id);if(el){el.textContent=text;el.style.color=isError?'#991b1b':'#667085';}}
+  async function loadTeacherTimetables(){
+    const lessonBody=document.getElementById('teacherTimetableRows'),examBody=document.getElementById('teacherExamTimetableRows');
+    if(!lessonBody||!examBody)return;
+    const user=auth.currentUser;
+    if(!user){setTimetableMessage('teacherTimetableMessage','Sign in to view your timetable.',true);return;}
+    try{
+      if(!activeTeacherConnection||activeTeacherConnection.status!=='connected')await refreshTeacherSchoolConnection();
+      const rec=activeTeacherConnection;
+      if(!rec||rec.status!=='connected'||!rec.schoolId){setTimetableMessage('teacherTimetableMessage','Connect to your school and wait for registrar approval to view your timetable.');setTimetableMessage('teacherExamTimetableMessage','Your examination timetable will appear after your school connection is approved.');lessonBody.innerHTML='<tr><td colspan="6" class="empty">No approved school connection.</td></tr>';examBody.innerHTML='<tr><td colspan="7" class="empty">No approved school connection.</td></tr>';return;}
+      const pairs=Array.isArray(rec.assignedTeachingAssignments)?rec.assignedTeachingAssignments:[];
+      if(!pairs.length){setTimetableMessage('teacherTimetableMessage','The registrar has not assigned class–subject combinations to your account yet.');setTimetableMessage('teacherExamTimetableMessage','No assigned class–subject combinations are available yet.');lessonBody.innerHTML='<tr><td colspan="6" class="empty">No teaching assignments.</td></tr>';examBody.innerHTML='<tr><td colspan="7" class="empty">No assigned exams.</td></tr>';return;}
+      setTimetableMessage('teacherTimetableMessage','Loading your assigned teaching timetable…');setTimetableMessage('teacherExamTimetableMessage','Loading your assigned examination timetable…');
+      const lessonRef=collection(db,'schools',rec.schoolId,'timetable');
+      const examRef=collection(db,'schools',rec.schoolId,'examTimetable');
+      const pairKeys=[...new Set(pairs.map(a=>String(a.className||a.class)+'::'+String(a.subject)))];
+      const lessonSnaps=await Promise.all(pairKeys.map(key=>getDocs(query(lessonRef,where('assignmentKey','==',key)))));
+      const examByPair=await Promise.all(pairKeys.map(key=>getDocs(query(examRef,where('assignmentKey','==',key)))));
+      let examByDuty=[];try{examByDuty=[await getDocs(query(examRef,where('invigilatorUid','==',user.uid)))];}catch(dutyError){console.warn('Could not query invigilation duties separately',dutyError)}
+      const uniqueDocs=new Map();[...lessonSnaps,...examByPair,...examByDuty].flatMap(snap=>snap.docs).forEach(d=>uniqueDocs.set(d.ref.path,d));
+      const lessonRows=[...new Map(lessonSnaps.flatMap(snap=>snap.docs).map(d=>[d.id,{id:d.id,...d.data()}])).values()].filter(r=>teacherHasPair(rec,r)).sort((a,b)=>String(a.date||a.day||'').localeCompare(String(b.date||b.day||''))||String(a.startTime||'').localeCompare(String(b.startTime||'')));
+      lessonBody.replaceChildren();
+      if(!lessonRows.length){lessonBody.innerHTML='<tr><td colspan="6" class="empty">No timetable entries match your assigned subjects and classes yet.</td></tr>';}
+      else lessonRows.forEach(r=>{const tr=document.createElement('tr');safeCell(tr,[r.day,r.date].filter(Boolean).join(' · '));safeCell(tr,(r.startTime||'')+' – '+(r.endTime||''));safeCell(tr,r.className);safeCell(tr,r.subject);safeCell(tr,r.venue);safeCell(tr,[r.term,r.academicSession].filter(Boolean).join(' · '));lessonBody.append(tr)});
+      const examRows=[...new Map([...examByPair,...examByDuty].flatMap(snap=>snap.docs).map(d=>[d.id,{id:d.id,...d.data()}])).values()].filter(r=>teacherHasPair(rec,r)||r.invigilatorUid===user.uid).sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))||String(a.startTime||'').localeCompare(String(b.startTime||'')));
+      examBody.replaceChildren();
+      if(!examRows.length){examBody.innerHTML='<tr><td colspan="7" class="empty">No exam timetable entries match your assigned class and subject yet.</td></tr>';}
+      else examRows.forEach(r=>{const tr=document.createElement('tr');safeCell(tr,r.date);safeCell(tr,(r.startTime||'')+' – '+(r.endTime||''));safeCell(tr,r.className);safeCell(tr,r.subject);safeCell(tr,r.venue);safeCell(tr,r.invigilatorUid===user.uid?'You are assigned as invigilator':(r.invigilatorName||'—'));safeCell(tr,[r.term,r.academicSession].filter(Boolean).join(' · '));examBody.append(tr)});
+      setTimetableMessage('teacherTimetableMessage',lessonRows.length+' timetable entr'+(lessonRows.length===1?'y':'ies')+' matching your assigned classes and subjects.');setTimetableMessage('teacherExamTimetableMessage',examRows.length+' examination entr'+(examRows.length===1?'y':'ies')+' matching your assignments or invigilation duties.');
+    }catch(e){console.error('Teacher timetable load failed:',e);setTimetableMessage('teacherTimetableMessage','Could not load timetable. Check Firestore rules for the school timetable.',true);setTimetableMessage('teacherExamTimetableMessage','Could not load exam timetable. Check Firestore rules for the school exam timetable.',true);lessonBody.innerHTML='<tr><td colspan="6" class="empty">Timetable unavailable.</td></tr>';examBody.innerHTML='<tr><td colspan="7" class="empty">Exam timetable unavailable.</td></tr>';}
+  }
+  window.loadTeacherTimetables=loadTeacherTimetables;
+
   async function requestTeacherSchoolConnection(){
     const btn=document.getElementById('requestSchoolConnection');if(btn)btn.disabled=true;
     try{
